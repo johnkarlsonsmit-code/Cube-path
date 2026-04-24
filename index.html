@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content, user-scalable=no" />
+  <title>Cube Path</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      background: #111;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: var(--cube-path-vw, 100vw);
+      height: var(--cube-path-vh, 100dvh);
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
+      font-family: Arial, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-text-size-adjust: none;
+    }
+
+    canvas {
+      display: block;
+      image-rendering: crisp-edges;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+  </style>
+</head>
+
+<body>
+  <script src="/sdk.js"></script>
+  <script src="lib/phaser.js?v=2"></script>
+  <script src="src/data/tutorialLevels.js?v=2"></script>
+  <script src="src/core/storage.js?v=2"></script>
+  <script src="src/core/levelGenerator.js?v=2"></script>
+  <script src="src/core/audio.js?v=2"></script>
+  <script src="src/core/ads.js?v=3"></script>
+  <script src="src/core/i18n.js?v=2"></script>
+  <script src="src/core/device.js?v=4"></script>
+  <script src="src/scenes/SettingsScene.js?v=4"></script>
+  <script src="src/ui/buttonFactory.js?v=3"></script>
+  <script src="src/scenes/MenuScene.js?v=4"></script>
+  <script src="src/scenes/ShopScene.js?v=4"></script>
+  <script src="src/scenes/LevelSelectScene.js?v=4"></script>
+  <script src="src/scenes/PauseScene.js?v=4"></script>
+  <script src="src/scenes/GameScene.js?v=4"></script>
+  <script src="src/main.js?v=4"></script>
+</body>
+
+</html>
