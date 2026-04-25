@@ -8,6 +8,7 @@ window.CubePathAds = {
     gameInstance: null,
     lifecycleBound: false,
     sdkMissingWarned: false,
+    countdownOverlayEl: null,
     interstitialCooldownMs: 70000,
     lastInterstitialAt: 0,
 
@@ -63,6 +64,111 @@ window.CubePathAds = {
             if (!this.isShowingAd) {
                 this.notifyActiveScenes('onYandexResume');
             }
+        });
+    },
+
+    clearCountdownOverlay() {
+        if (this.countdownOverlayEl?.remove) {
+            this.countdownOverlayEl.remove();
+        }
+
+        this.countdownOverlayEl = null;
+    },
+
+    async showCountdown(options = {}) {
+        const {
+            seconds = 3,
+            label = 'Реклама начнется через'
+        } = options;
+
+        if (!Number.isFinite(seconds) || seconds <= 0 || !document?.body) {
+            return true;
+        }
+
+        this.clearCountdownOverlay();
+
+        const translate = (value) => window.CubePathI18n?.translateText?.(value) || value;
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.inset = '0';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.background = 'rgba(18, 37, 58, 0.46)';
+        overlay.style.backdropFilter = 'blur(4px)';
+        overlay.style.zIndex = '99999';
+        overlay.style.pointerEvents = 'none';
+
+        const card = document.createElement('div');
+        card.style.minWidth = '220px';
+        card.style.maxWidth = 'min(88vw, 360px)';
+        card.style.padding = '22px 24px 20px';
+        card.style.borderRadius = '24px';
+        card.style.background = 'linear-gradient(180deg, rgba(174,220,255,0.96), rgba(120,183,235,0.98))';
+        card.style.border = '2px solid rgba(255,255,255,0.85)';
+        card.style.boxShadow = '0 18px 50px rgba(35, 82, 127, 0.28)';
+        card.style.textAlign = 'center';
+        card.style.fontFamily = 'Georgia, "Times New Roman", serif';
+        card.style.color = '#ffffff';
+
+        const labelNode = document.createElement('div');
+        labelNode.textContent = translate(label);
+        labelNode.style.fontSize = '18px';
+        labelNode.style.fontWeight = '700';
+        labelNode.style.lineHeight = '1.25';
+        labelNode.style.textShadow = '0 2px 8px rgba(44, 92, 141, 0.45)';
+
+        const valueNode = document.createElement('div');
+        valueNode.style.marginTop = '12px';
+        valueNode.style.fontSize = '52px';
+        valueNode.style.fontWeight = '700';
+        valueNode.style.lineHeight = '1';
+        valueNode.style.color = '#fff6d9';
+        valueNode.style.textShadow = '0 3px 10px rgba(173, 124, 45, 0.35)';
+        valueNode.style.transition = 'transform 180ms ease, opacity 180ms ease';
+
+        const subtitleNode = document.createElement('div');
+        subtitleNode.textContent = translate('Сейчас откроется реклама');
+        subtitleNode.style.marginTop = '8px';
+        subtitleNode.style.fontSize = '14px';
+        subtitleNode.style.lineHeight = '1.25';
+        subtitleNode.style.color = 'rgba(255,255,255,0.92)';
+
+        card.append(labelNode, valueNode, subtitleNode);
+        overlay.append(card);
+        document.body.appendChild(overlay);
+        this.countdownOverlayEl = overlay;
+
+        return new Promise((resolve) => {
+            let current = Math.max(1, Math.floor(seconds));
+
+            const showValue = () => {
+                valueNode.style.opacity = '0';
+                valueNode.style.transform = 'scale(0.8)';
+
+                window.setTimeout(() => {
+                    valueNode.textContent = String(current);
+                    valueNode.style.opacity = '1';
+                    valueNode.style.transform = 'scale(1)';
+                }, 30);
+            };
+
+            const step = () => {
+                showValue();
+
+                if (current <= 1) {
+                    window.setTimeout(() => {
+                        this.clearCountdownOverlay();
+                        resolve(true);
+                    }, 760);
+                    return;
+                }
+
+                current -= 1;
+                window.setTimeout(step, 760);
+            };
+
+            step();
         });
     },
 
@@ -170,7 +276,9 @@ window.CubePathAds = {
             onOpen = null,
             onClose = null,
             onError = null,
-            force = false
+            force = false,
+            countdown = true,
+            countdownLabel = 'Реклама начнется через'
         } = options;
 
         if (this.isShowingAd) {
@@ -184,6 +292,12 @@ window.CubePathAds = {
         }
 
         const ysdk = await this.init();
+        this.isShowingAd = true;
+
+        await this.showCountdown({
+            seconds: countdown ? 3 : 0,
+            label: countdownLabel
+        });
 
         if (!ysdk || !ysdk.adv || !ysdk.adv.showFullscreenAdv) {
             console.log('[Ads] Interstitial stub shown');
@@ -192,13 +306,12 @@ window.CubePathAds = {
             if (onOpen) onOpen();
 
             setTimeout(() => {
+                this.isShowingAd = false;
                 if (onClose) onClose(true);
             }, 500);
 
             return true;
         }
-
-        this.isShowingAd = true;
 
         try {
             ysdk.adv.showFullscreenAdv({
@@ -238,7 +351,9 @@ window.CubePathAds = {
             onOpen = null,
             onReward = null,
             onClose = null,
-            onError = null
+            onError = null,
+            countdown = true,
+            countdownLabel = 'Реклама начнется через'
         } = options;
 
         if (this.isShowingAd) {
@@ -247,6 +362,11 @@ window.CubePathAds = {
         }
 
         const ysdk = await this.init();
+        this.isShowingAd = true;
+        await this.showCountdown({
+            seconds: countdown ? 3 : 0,
+            label: countdownLabel
+        });
 
         if (!ysdk || !ysdk.adv || !ysdk.adv.showRewardedVideo) {
             console.log('[Ads] Rewarded stub shown');
@@ -254,13 +374,12 @@ window.CubePathAds = {
 
             setTimeout(() => {
                 if (onReward) onReward();
+                this.isShowingAd = false;
                 if (onClose) onClose(true);
             }, 700);
 
             return true;
         }
-
-        this.isShowingAd = true;
         let rewardGranted = false;
 
         try {

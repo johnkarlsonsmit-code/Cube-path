@@ -936,13 +936,20 @@ class GameScene extends Phaser.Scene {
       this.hintTextAd = null;
     }
 
-    this.hintTextAd = this.add.text(this.scale.width / 2, 42, text, {
-      fontSize: '18px',
+    const profile = this.deviceProfile || window.CubePathDevice?.getProfile?.(this) || { isMobile: false, safePadding: 14 };
+    const hintY = (profile.safePadding || 14) + (profile.isMobile ? 14 : 10);
+    const hintWidth = Math.max(180, this.scale.width - (profile.isMobile ? 34 : 120));
+
+    this.hintTextAd = this.add.text(this.scale.width / 2, hintY, text, {
+      fontSize: profile.isMobile ? '15px' : '18px',
       color: '#ffffff',
       fontStyle: 'bold',
       stroke: '#000000',
       strokeThickness: 4
-    }).setOrigin(0.5).setDepth(13000).setScrollFactor(0);
+    }).setOrigin(0.5, 0).setDepth(13000).setScrollFactor(0);
+    this.hintTextAd.setAlign('center');
+    this.hintTextAd.setWordWrapWidth(hintWidth, true);
+    this.fitTextToBox(this.hintTextAd, hintWidth, profile.isMobile ? 44 : 40, 10);
 
     this.time.delayedCall(1200, () => {
       if (!this.hintTextAd) return;
@@ -1186,6 +1193,228 @@ class GameScene extends Phaser.Scene {
     });
 
     const { cx, cy } = panel;
+    const campaignTop = cy - panel.panelHeight / 2;
+    const campaignBottom = cy + panel.panelHeight / 2;
+    const campaignSummary = this.add.text(
+      cx,
+      campaignTop + (isMobileOverlay ? 104 : 128),
+      'Попробуйте бесконечный режим\nНовые обновления уже в пути',
+      this.makeUiTextStyle({
+        size: isMobileOverlay ? (profile.isPortrait ? 16 : 18) : 22,
+        color: '#5f7891',
+        stroke: '#ffffff',
+        strokeThickness: 1
+      })
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(12005);
+    campaignSummary.setAlign('center');
+    campaignSummary.setWordWrapWidth(Math.min(panel.panelWidth - 44, this.scale.width - 56), true);
+    this.fitTextToBox(campaignSummary, Math.min(panel.panelWidth - 44, this.scale.width - 56), panel.panelHeight - 180, 12);
+
+    const endlessBtnCampaign = this.createStyledUiButton(cx, campaignBottom - (isMobileOverlay ? 86 : 90), isMobileOverlay ? 232 : 260, isMobileOverlay ? 40 : 42, 'Бесконечный режим', () => {
+      CubePathStorage.setMode('survival');
+      CubePathStorage.setCurrentLevel(0, 'survival');
+      this.scene.start('GameScene');
+    }, { textSize: isMobileOverlay ? 12 : 15, theme: 'green' });
+
+    const menuBtnCampaign = this.createStyledUiButton(cx, campaignBottom - (isMobileOverlay ? 38 : 40), isMobileOverlay ? 166 : 180, isMobileOverlay ? 36 : 40, 'В меню', () => {
+      CubePathAudio.stopMusic(this);
+      this.scene.start('MenuScene');
+    }, { textSize: isMobileOverlay ? 12 : 15, theme: 'blue' });
+
+    this.resultUi = [
+      panel.overlay,
+      panel.shadow,
+      panel.panel,
+      panel.inner,
+      panel.gloss,
+      panel.titleText,
+      campaignSummary,
+      ...endlessBtnCampaign,
+      ...menuBtnCampaign
+    ];
+
+    this.fixHudToCamera();
+    return;
+    const unusedTopTwo = cy - panel.panelHeight / 2;
+    const unusedBottomTwo = cy + panel.panelHeight / 2;
+    const unusedStatsAdaptive = this.add.text(
+      cx,
+      panelTop + (isMobileOverlay ? 112 : 126),
+      completedCount > 0
+        ? `Сумма лучших результатов:\n${totalBestTime.toFixed(1)}с / ${totalBestMoves} ходов`
+        : 'Лучшие результаты пока не найдены',
+      this.makeUiTextStyle({
+        size: isMobileOverlay ? (profile.isPortrait ? 15 : 17) : 19,
+        color: '#5f7891',
+        stroke: '#ffffff',
+        strokeThickness: 1
+      })
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(12005);
+    unusedStatsAdaptive.setAlign('center');
+    unusedStatsAdaptive.setWordWrapWidth(Math.min(panel.panelWidth - 44, this.scale.width - 56), true);
+    this.fitTextToBox(unusedStatsAdaptive, Math.min(panel.panelWidth - 44, this.scale.width - 56), panel.panelHeight - 176, 12);
+
+    const unusedReplayBtnNode = this.createStyledUiButton(cx, panelBottom - (isMobileOverlay ? 84 : 88), isMobileOverlay ? 214 : 226, isMobileOverlay ? 40 : 42, 'Играть заново', () => {
+      this.currentLevelIndex = 0;
+      if (this.gameMode === 'tutorial') {
+        this.unlockedLevelIndex = 0;
+      }
+      this.saveProgress();
+      this.loadLevel(0);
+    }, { textSize: isMobileOverlay ? 12 : 15, theme: 'green' });
+
+    const unusedMenuBtnNode = this.createStyledUiButton(cx, panelBottom - (isMobileOverlay ? 38 : 40), isMobileOverlay ? 170 : 186, isMobileOverlay ? 36 : 40, 'В меню', () => {
+      CubePathAudio.stopMusic(this);
+      this.scene.start('MenuScene');
+    }, { textSize: isMobileOverlay ? 12 : 15, theme: 'blue' });
+
+    this.resultUi = [
+      panel.overlay,
+      panel.shadow,
+      panel.panel,
+      panel.inner,
+      panel.gloss,
+      panel.titleText,
+      unusedStatsAdaptive,
+      ...unusedReplayBtnNode,
+      ...unusedMenuBtnNode
+    ];
+
+    this.fixHudToCamera();
+    return;
+    const panelTop = cy - panel.panelHeight / 2;
+    const panelBottom = cy + panel.panelHeight / 2;
+    const unusedSummaryTextNode = this.add.text(
+      cx,
+      panelTop + (isMobileOverlay ? 104 : 128),
+      'Попробуйте бесконечный режим\nНовые обновления уже в пути',
+      this.makeUiTextStyle({
+        size: isMobileOverlay ? (profile.isPortrait ? 16 : 18) : 22,
+        color: '#5f7891',
+        stroke: '#ffffff',
+        strokeThickness: 1
+      })
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(12005);
+    unusedSummaryTextNode.setAlign('center');
+    unusedSummaryTextNode.setWordWrapWidth(Math.min(panel.panelWidth - 44, this.scale.width - 56), true);
+    this.fitTextToBox(unusedSummaryTextNode, Math.min(panel.panelWidth - 44, this.scale.width - 56), panel.panelHeight - 180, 12);
+
+    const unusedEndlessBtnNode = this.createStyledUiButton(cx, panelBottom - (isMobileOverlay ? 86 : 90), isMobileOverlay ? 232 : 260, isMobileOverlay ? 40 : 42, 'Бесконечный режим', () => {
+      CubePathStorage.setMode('survival');
+      CubePathStorage.setCurrentLevel(0, 'survival');
+      this.scene.start('GameScene');
+    }, { textSize: isMobileOverlay ? 12 : 15, theme: 'green' });
+
+    const unusedSecondMenuBtnNode = this.createStyledUiButton(cx, panelBottom - (isMobileOverlay ? 38 : 40), isMobileOverlay ? 166 : 180, isMobileOverlay ? 36 : 40, 'В меню', () => {
+      CubePathAudio.stopMusic(this);
+      this.scene.start('MenuScene');
+    }, { textSize: isMobileOverlay ? 12 : 15, theme: 'blue' });
+
+    this.resultUi = [
+      panel.overlay,
+      panel.shadow,
+      panel.panel,
+      panel.inner,
+      panel.gloss,
+      panel.titleText,
+      unusedSummaryTextNode,
+      ...unusedEndlessBtnNode,
+      ...unusedSecondMenuBtnNode
+    ];
+
+    this.fixHudToCamera();
+    return;
+    const unusedTop = cy - panel.panelHeight / 2;
+    const unusedBottom = cy + panel.panelHeight / 2;
+    const statsTextAdaptive = completedCount > 0
+      ? `Сумма лучших результатов:\n${totalBestTime.toFixed(1)}с / ${totalBestMoves} ходов`
+      : 'Лучшие результаты пока не найдены';
+
+    const deadStatsAdaptive = this.add.text(
+      cx,
+      top + (isMobileOverlay ? 112 : 126),
+      statsTextAdaptive,
+      this.makeUiTextStyle({
+        size: isMobileOverlay ? (profile.isPortrait ? 15 : 17) : 19,
+        color: '#5f7891',
+        stroke: '#ffffff',
+        strokeThickness: 1
+      })
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(12005);
+    deadStatsAdaptive.setAlign('center');
+    deadStatsAdaptive.setWordWrapWidth(Math.min(panel.panelWidth - 44, this.scale.width - 56), true);
+    this.fitTextToBox(deadStatsAdaptive, Math.min(panel.panelWidth - 44, this.scale.width - 56), panel.panelHeight - 176, 12);
+
+    const deadReplayBtnAdaptive = this.createStyledUiButton(cx, bottom - (isMobileOverlay ? 84 : 88), isMobileOverlay ? 214 : 226, isMobileOverlay ? 40 : 42, 'Играть заново', () => {
+      this.currentLevelIndex = 0;
+      if (this.gameMode === 'tutorial') {
+        this.unlockedLevelIndex = 0;
+      }
+      this.saveProgress();
+      this.loadLevel(0);
+    }, { textSize: isMobileOverlay ? 12 : 15, theme: 'green' });
+
+    const deadMenuBtnAdaptive = this.createStyledUiButton(cx, bottom - (isMobileOverlay ? 38 : 40), isMobileOverlay ? 170 : 186, isMobileOverlay ? 36 : 40, 'В меню', () => {
+      CubePathAudio.stopMusic(this);
+      this.scene.start('MenuScene');
+    }, { textSize: isMobileOverlay ? 12 : 15, theme: 'blue' });
+
+    this.resultUi = [
+      panel.overlay,
+      panel.shadow,
+      panel.panel,
+      panel.inner,
+      panel.gloss,
+      panel.titleText,
+      deadStatsAdaptive,
+      ...deadReplayBtnAdaptive,
+      ...deadMenuBtnAdaptive
+    ];
+
+    this.fixHudToCamera();
+    return;
+    const top = cy - panel.panelHeight / 2;
+    const bottom = cy + panel.panelHeight / 2;
+    const summaryText = this.add.text(
+      cx,
+      top + (isMobileOverlay ? 104 : 128),
+      'Попробуйте бесконечный режим\nНовые обновления уже в пути',
+      this.makeUiTextStyle({
+        size: isMobileOverlay ? (profile.isPortrait ? 16 : 18) : 22,
+        color: '#5f7891',
+        stroke: '#ffffff',
+        strokeThickness: 1
+      })
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(12005);
+    summaryText.setAlign('center');
+    summaryText.setWordWrapWidth(Math.min(panel.panelWidth - 44, this.scale.width - 56), true);
+    this.fitTextToBox(summaryText, Math.min(panel.panelWidth - 44, this.scale.width - 56), panel.panelHeight - 180, 12);
+
+    const deadEndlessBtnAdaptive = this.createStyledUiButton(cx, bottom - (isMobileOverlay ? 86 : 90), isMobileOverlay ? 232 : 260, isMobileOverlay ? 40 : 42, 'Бесконечный режим', () => {
+      CubePathStorage.setMode('survival');
+      CubePathStorage.setCurrentLevel(0, 'survival');
+      this.scene.start('GameScene');
+    }, { textSize: isMobileOverlay ? 12 : 15, theme: 'green' });
+
+    const deadSecondMenuBtnAdaptive = this.createStyledUiButton(cx, bottom - (isMobileOverlay ? 38 : 40), isMobileOverlay ? 166 : 180, isMobileOverlay ? 36 : 40, 'В меню', () => {
+      CubePathAudio.stopMusic(this);
+      this.scene.start('MenuScene');
+    }, { textSize: isMobileOverlay ? 12 : 15, theme: 'blue' });
+
+    this.resultUi = [
+      panel.overlay,
+      panel.shadow,
+      panel.panel,
+      panel.inner,
+      panel.gloss,
+      panel.titleText,
+      summaryText,
+      ...deadEndlessBtnAdaptive,
+      ...deadSecondMenuBtnAdaptive
+    ];
+
+    this.fixHudToCamera();
+    return;
 
     const text = this.add.text(
       cx,
@@ -1444,6 +1673,15 @@ class GameScene extends Phaser.Scene {
     };
   }
 
+  fitTextToBox(text, maxWidth, maxHeight, minSize = 10) {
+    window.CubePathLayout?.fitText?.(text, {
+      maxWidth,
+      maxHeight,
+      minSize
+    });
+    return text;
+  }
+
   createUiRoundedRect(x, y, w, h, radius, fillColor, fillAlpha = 1, strokeColor = null, strokeAlpha = 1, strokeWidth = 0, depth = 12001) {
     const g = this.add.graphics().setDepth(depth).setScrollFactor(0);
     g.fillStyle(fillColor, fillAlpha);
@@ -1501,6 +1739,7 @@ class GameScene extends Phaser.Scene {
     ).setOrigin(0.5).setScrollFactor(0).setDepth(12004);
     titleText.setAlign('center');
     titleText.setWordWrapWidth(Math.max(120, width - 48), true);
+    this.fitTextToBox(titleText, Math.max(120, width - 48), profile.isMobile ? 54 : 64, 18);
 
     return { cx, cy, panelWidth: width, panelHeight: height, overlay, shadow, panel, inner, gloss, titleText };
   }
@@ -1587,6 +1826,7 @@ class GameScene extends Phaser.Scene {
       text.setLineSpacing(-2);
       text.setWordWrapWidth(Math.max(60, w - 18), true);
     }
+    this.fitTextToBox(text, Math.max(44, w - 18), h - 8, profile.isMobile ? 10 : 11);
 
     const setScaleAll = (scale) => {
       bg.setScale(scale);
@@ -2244,9 +2484,9 @@ class GameScene extends Phaser.Scene {
         .setDepth(5000)
         .setScrollFactor(0);
 
-      const freezeIcon = this.add.text(layout.freezeX, layout.freezeY - 1, 'ICE', {
+      const freezeIcon = this.add.text(layout.freezeX, layout.freezeY - 1, '❄', {
         fontFamily: 'Trebuchet MS, Arial, sans-serif',
-        fontSize: '13px',
+        fontSize: '22px',
         fontStyle: 'bold',
         color: '#dff8ff',
         stroke: '#173449',
@@ -2281,9 +2521,9 @@ class GameScene extends Phaser.Scene {
         .setDepth(5000)
         .setScrollFactor(0);
 
-      const energyIcon = this.add.text(layout.energyX, layout.energyY - 1, 'PWR', {
+      const energyIcon = this.add.text(layout.energyX, layout.energyY - 1, '⚡', {
         fontFamily: 'Trebuchet MS, Arial, sans-serif',
-        fontSize: '12px',
+        fontSize: '20px',
         fontStyle: 'bold',
         color: '#fff1bf',
         stroke: '#4f3211',
@@ -2471,9 +2711,9 @@ class GameScene extends Phaser.Scene {
         .setDepth(5000)
         .setScrollFactor(0);
 
-      const freezeIcon = this.add.text(layout.freezeX, layout.boostY - 1, 'ICE', {
+      const freezeIcon = this.add.text(layout.freezeX, layout.boostY - 1, '❄', {
         fontFamily: 'Trebuchet MS, Arial, sans-serif',
-        fontSize: `${profile.isPortrait ? 15 : 13}px`,
+        fontSize: `${profile.isPortrait ? 24 : 20}px`,
         fontStyle: 'bold',
         color: '#dff8ff',
         stroke: '#173449',
@@ -2508,9 +2748,9 @@ class GameScene extends Phaser.Scene {
         .setDepth(5000)
         .setScrollFactor(0);
 
-      const energyIcon = this.add.text(layout.energyX, layout.boostY - 1, 'PWR', {
+      const energyIcon = this.add.text(layout.energyX, layout.boostY - 1, '⚡', {
         fontFamily: 'Trebuchet MS, Arial, sans-serif',
-        fontSize: `${profile.isPortrait ? 14 : 12}px`,
+        fontSize: `${profile.isPortrait ? 22 : 18}px`,
         fontStyle: 'bold',
         color: '#fff1bf',
         stroke: '#4f3211',
@@ -4096,6 +4336,112 @@ class GameScene extends Phaser.Scene {
     const { cx, cy } = panel;
 
     if (isMobileResult) {
+      const top = cy - panel.panelHeight / 2;
+      const bottom = cy + panel.panelHeight / 2;
+      const firstRowYAdaptive = bottom - (profile.isPortrait ? 112 : 98);
+      const menuRowYAdaptive = bottom - (profile.isPortrait ? 70 : 58);
+      const adRowYAdaptive = bottom - (profile.isPortrait ? 28 : 18);
+      const metricXAdaptive = cx - (profile.isPortrait ? 80 : 86);
+
+      panel.titleText.setY(top + (profile.isPortrait ? 42 : 38));
+
+      const starNodesAdaptive = this.createStarRow(cx, top + (profile.isPortrait ? 96 : 86), result.stars);
+      const dividerAdaptive = this.add.rectangle(
+        cx,
+        top + (profile.isPortrait ? 144 : 128),
+        Math.min(280, this.scale.width - 56),
+        2,
+        0xffffff,
+        0.18
+      ).setScrollFactor(0).setDepth(12004);
+
+      const timeNodesAdaptive = this.createMetricRow(
+        metricXAdaptive,
+        top + (profile.isPortrait ? 174 : 158),
+        '\u231B',
+        `${result.timeSeconds.toFixed(1)}с / ${result.parTime.toFixed(1)}с`,
+        'blue'
+      );
+
+      const coinNodesAdaptive = this.createMetricRow(
+        metricXAdaptive,
+        top + (profile.isPortrait ? 206 : 192),
+        'STAR_HALF',
+        `${this.coinsCollected}/${this.coinsTotal}`,
+        'gold'
+      );
+
+      const rewardY = top + (profile.isPortrait ? 226 : 216);
+      const rewardCubeAdaptive = this.createRewardCubeIcon(
+        cx - (profile.isPortrait ? 78 : 54),
+        rewardY,
+        profile.isPortrait ? 0.72 : 0.78
+      );
+      const rewardTextAdaptive = this.add.text(
+        cx - (profile.isPortrait ? 26 : 2),
+        rewardY + 6,
+        `+${gainedCubeCoins}`,
+        this.makeUiTextStyle({
+          size: profile.isPortrait ? 20 : 23,
+          color: '#ffd54a',
+          stroke: '#c98b11',
+          strokeThickness: 2,
+          shadowColor: '#fff0c8',
+          shadowBlur: 4
+        })
+      ).setOrigin(0, 0.5).setScrollFactor(0).setDepth(12007);
+      this.fitTextToBox(rewardTextAdaptive, panel.panelWidth - 120, 28, 12);
+
+      const restartBtnAdaptive = this.createStyledUiButton(cx - (profile.isPortrait ? 66 : 70), firstRowYAdaptive, profile.isPortrait ? 116 : 128, profile.isPortrait ? 38 : 40, 'Рестарт', () => {
+        this.clearResultMenu();
+        this.resetCurrentLevel();
+      }, { textSize: profile.isPortrait ? 11 : 12, theme: 'blue' });
+
+      const nextBtnAdaptive = this.createStyledUiButton(cx + (profile.isPortrait ? 66 : 70), firstRowYAdaptive, profile.isPortrait ? 116 : 128, profile.isPortrait ? 38 : 40, 'Далее', () => {
+        this.clearResultMenu();
+        this.advanceAfterWin();
+      }, { textSize: profile.isPortrait ? 11 : 12, theme: 'green' });
+
+      const menuBtnAdaptive = this.createStyledUiButton(cx, menuRowYAdaptive, profile.isPortrait ? 184 : 202, profile.isPortrait ? 34 : 36, 'Меню', () => {
+        this.clearResultMenu();
+        CubePathAudio.stopMusic(this);
+        this.scene.start('MenuScene');
+      }, { textSize: profile.isPortrait ? 11 : 12, theme: 'gray' });
+
+      const adBtnAdaptive = this.createStyledUiButton(
+        cx,
+        adRowYAdaptive,
+        Math.min(panel.panelWidth - 36, profile.isPortrait ? 276 : 290),
+        profile.isPortrait ? 40 : 38,
+        'Смотреть рекламу за\nслучайный буст',
+        () => {
+          this.showRewardedRandomBoost();
+        },
+        { textSize: profile.isPortrait ? 10 : 11, theme: 'orange' }
+      );
+
+      this.resultUi = [
+        panel.overlay,
+        panel.shadow,
+        panel.panel,
+        panel.inner,
+        panel.gloss,
+        panel.titleText,
+        ...starNodesAdaptive,
+        dividerAdaptive,
+        ...timeNodesAdaptive,
+        ...coinNodesAdaptive,
+        rewardCubeAdaptive,
+        rewardTextAdaptive,
+        ...restartBtnAdaptive,
+        ...nextBtnAdaptive,
+        ...menuBtnAdaptive,
+        ...adBtnAdaptive
+      ];
+
+      this.fixHudToCamera();
+      return;
+
       const firstRowY = cy + (profile.isPortrait ? 118 : 132);
       const menuRowY = cy + (profile.isPortrait ? 158 : 176);
       const adRowY = cy + (profile.isPortrait ? 196 : 218);
@@ -4415,6 +4761,78 @@ class GameScene extends Phaser.Scene {
     });
 
     const { cx, cy } = panel;
+    if (isMobileOverlay) {
+      const top = cy - panel.panelHeight / 2;
+      const bottom = cy + panel.panelHeight / 2;
+
+      panel.titleText.setY(top + 42);
+
+      const subtitleAdaptive = this.add.text(
+        cx,
+        top + 94,
+        'Использовать второй шанс?',
+        this.makeUiTextStyle({
+          size: profile.isPortrait ? 17 : 19,
+          color: '#5f7891',
+          stroke: '#ffffff',
+          strokeThickness: 1
+        })
+      ).setOrigin(0.5).setScrollFactor(0).setDepth(12005);
+      subtitleAdaptive.setAlign('center');
+      subtitleAdaptive.setWordWrapWidth(Math.min(panel.panelWidth - 42, this.scale.width - 56), true);
+      this.fitTextToBox(subtitleAdaptive, Math.min(panel.panelWidth - 42, this.scale.width - 56), 30, 12);
+
+      const hintAdaptive = this.add.text(
+        cx,
+        top + 138,
+        'Возврат на последнюю\nбезопасную клетку',
+        this.makeUiTextStyle({
+          size: profile.isPortrait ? 13 : 14,
+          color: '#6f87a0',
+          stroke: '#ffffff',
+          strokeThickness: 1,
+          align: 'center'
+        })
+      ).setOrigin(0.5).setScrollFactor(0).setDepth(12005);
+      hintAdaptive.setAlign('center');
+      hintAdaptive.setWordWrapWidth(Math.min(panel.panelWidth - 44, this.scale.width - 56), true);
+      this.fitTextToBox(hintAdaptive, Math.min(panel.panelWidth - 44, this.scale.width - 56), 42, 10);
+
+      const firstRowYAdaptive = bottom - 94;
+      const menuRowYAdaptive = bottom - 42;
+
+      const restartBtnAdaptive = this.createStyledUiButton(cx - 66, firstRowYAdaptive, 114, 38, 'Рестарт', () => {
+        this.clearSecondChanceMenu();
+        this.resetCurrentLevel();
+      }, { textSize: 11, theme: 'gray' });
+
+      const secondChanceBtnAdaptive = this.createStyledUiButton(cx + 70, firstRowYAdaptive, Math.min(panel.panelWidth - 170, 148), 44, 'Смотреть рекламу за\nвторой шанс', () => {
+        this.showRewardedSecondChance();
+      }, { textSize: 10, theme: 'green' });
+
+      const menuBtnAdaptive = this.createStyledUiButton(cx, menuRowYAdaptive, 166, 34, 'Меню', () => {
+        this.clearSecondChanceMenu();
+        CubePathAudio.stopMusic(this);
+        this.scene.start('MenuScene');
+      }, { textSize: 11, theme: 'blue' });
+
+      this.secondChanceUi = [
+        panel.overlay,
+        panel.shadow,
+        panel.panel,
+        panel.inner,
+        panel.gloss,
+        panel.titleText,
+        subtitleAdaptive,
+        hintAdaptive,
+        ...restartBtnAdaptive,
+        ...secondChanceBtnAdaptive,
+        ...menuBtnAdaptive
+      ];
+
+      this.fixHudToCamera();
+      return;
+    }
     const firstRowY = isMobileOverlay ? (profile.isPortrait ? cy + 78 : cy + 74) : cy + 74;
     const menuRowY = isMobileOverlay ? (profile.isPortrait ? cy + 130 : cy + 126) : cy + 126;
 
@@ -4502,6 +4920,63 @@ class GameScene extends Phaser.Scene {
     });
 
     const { cx, cy } = panel;
+    const top = cy - panel.panelHeight / 2;
+    const bottom = cy + panel.panelHeight / 2;
+    const passedTextAdaptive = this.add.text(
+      cx,
+      top + (isMobileOverlay ? 98 : 106),
+      `Пройдено уровней: ${this.currentLevelIndex}`,
+      this.makeUiTextStyle({
+        size: isMobileOverlay ? (profile.isPortrait ? 16 : 18) : 22,
+        color: '#5f7891',
+        stroke: '#ffffff',
+        strokeThickness: 1
+      })
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(12005);
+    passedTextAdaptive.setAlign('center');
+    this.fitTextToBox(passedTextAdaptive, panel.panelWidth - 44, 28, 12);
+
+    const bestTextAdaptive = this.add.text(
+      cx,
+      top + (isMobileOverlay ? 136 : 148),
+      `Лучший результат: ${best}`,
+      this.makeUiTextStyle({
+        size: isMobileOverlay ? (profile.isPortrait ? 14 : 15) : 17,
+        color: '#6f87a0',
+        stroke: '#ffffff',
+        strokeThickness: 1
+      })
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(12005);
+    bestTextAdaptive.setAlign('center');
+    this.fitTextToBox(bestTextAdaptive, panel.panelWidth - 44, 24, 11);
+
+    const restartBtnAdaptive = this.createStyledUiButton(cx, bottom - (isMobileOverlay ? 84 : 82), isMobileOverlay ? 188 : 210, isMobileOverlay ? 40 : 40, 'Новый забег', () => {
+      this.currentLevelIndex = 0;
+      this.currentCampaignLayout = null;
+      this.currentCampaignSeed = null;
+      this.loadLevel(0);
+    }, { textSize: isMobileOverlay ? 12 : 14, theme: 'green' });
+
+    const menuBtnAdaptive = this.createStyledUiButton(cx, bottom - (isMobileOverlay ? 38 : 38), isMobileOverlay ? 164 : 180, isMobileOverlay ? 36 : 40, 'В меню', () => {
+      CubePathAudio.stopMusic(this);
+      this.scene.start('MenuScene');
+    }, { textSize: isMobileOverlay ? 12 : 14, theme: 'blue' });
+
+    this.resultUi = [
+      panel.overlay,
+      panel.shadow,
+      panel.panel,
+      panel.inner,
+      panel.gloss,
+      panel.titleText,
+      passedTextAdaptive,
+      bestTextAdaptive,
+      ...restartBtnAdaptive,
+      ...menuBtnAdaptive
+    ];
+
+    this.fixHudToCamera();
+    return;
 
     const passedText = this.add.text(
       cx,
@@ -4541,6 +5016,770 @@ class GameScene extends Phaser.Scene {
 
     this.fixHudToCamera();
   }
+  showMainCampaignCompleteScreen() {
+    this.clearBreakTimers();
+    this.clearResultMenu();
+    this.activeOverlayKind = 'mainCampaignComplete';
+    const profile = this.deviceProfile || window.CubePathDevice?.getProfile?.(this) || { isMobile: false, isPortrait: false };
+    const isMobileOverlay = !!profile.isMobile;
+
+    if (this.hudCamera) {
+      this.cameras.remove(this.hudCamera, true);
+      this.hudCamera = null;
+    }
+
+    this.children.removeAll(true);
+
+    const panel = this.createStyledOverlayPanel({
+      width: isMobileOverlay
+        ? (profile.isPortrait ? Math.min(this.scale.width - 28, 360) : Math.min(this.scale.width - 48, 500))
+        : 660,
+      height: isMobileOverlay
+        ? (profile.isPortrait ? 360 : 312)
+        : 360,
+      title: '\u041e\u0441\u043d\u043e\u0432\u043d\u0430\u044f \u043a\u0430\u043c\u043f\u0430\u043d\u0438\u044f \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0430',
+      titleColor: '#ffffff',
+      titleStroke: '#6dbb80'
+    });
+
+    const { cx, cy } = panel;
+    const top = cy - panel.panelHeight / 2;
+    const bottom = cy + panel.panelHeight / 2;
+    const textWidth = Math.min(panel.panelWidth - 44, this.scale.width - 56);
+
+    panel.titleText.setY(top + (isMobileOverlay ? 42 : 54));
+
+    const summary = this.add.text(
+      cx,
+      top + (isMobileOverlay ? 122 : 146),
+      '\u041f\u043e\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u0431\u0435\u0441\u043a\u043e\u043d\u0435\u0447\u043d\u044b\u0439 \u0440\u0435\u0436\u0438\u043c\n\u041d\u043e\u0432\u044b\u0435 \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u044f \u0443\u0436\u0435 \u0432 \u043f\u0443\u0442\u0438',
+      this.makeUiTextStyle({
+        size: isMobileOverlay ? (profile.isPortrait ? 16 : 18) : 22,
+        color: '#5f7891',
+        stroke: '#ffffff',
+        strokeThickness: 1
+      })
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(12005);
+    summary.setAlign('center');
+    summary.setWordWrapWidth(textWidth, true);
+    this.fitTextToBox(summary, textWidth, panel.panelHeight - (isMobileOverlay ? 188 : 194), 12);
+
+    const endlessBtn = this.createStyledUiButton(
+      cx,
+      bottom - (isMobileOverlay ? 86 : 90),
+      isMobileOverlay ? Math.min(panel.panelWidth - 36, 238) : 260,
+      isMobileOverlay ? 40 : 42,
+      '\u0411\u0435\u0441\u043a\u043e\u043d\u0435\u0447\u043d\u044b\u0439 \u0440\u0435\u0436\u0438\u043c',
+      () => {
+        CubePathStorage.setMode('survival');
+        CubePathStorage.setCurrentLevel(0, 'survival');
+        this.scene.start('GameScene');
+      },
+      { textSize: isMobileOverlay ? 12 : 15, theme: 'green' }
+    );
+
+    const menuBtn = this.createStyledUiButton(
+      cx,
+      bottom - (isMobileOverlay ? 38 : 40),
+      isMobileOverlay ? Math.min(panel.panelWidth - 72, 182) : 180,
+      isMobileOverlay ? 36 : 40,
+      '\u0412 \u043c\u0435\u043d\u044e',
+      () => {
+        CubePathAudio.stopMusic(this);
+        this.scene.start('MenuScene');
+      },
+      { textSize: isMobileOverlay ? 12 : 15, theme: 'blue' }
+    );
+
+    this.resultUi = [
+      panel.overlay,
+      panel.shadow,
+      panel.panel,
+      panel.inner,
+      panel.gloss,
+      panel.titleText,
+      summary,
+      ...endlessBtn,
+      ...menuBtn
+    ];
+
+    this.fixHudToCamera();
+  }
+
+  showGameCompleteScreen() {
+    this.clearBreakTimers();
+    this.clearResultMenu();
+    this.activeOverlayKind = 'gameComplete';
+    const profile = this.deviceProfile || window.CubePathDevice?.getProfile?.(this) || { isMobile: false, isPortrait: false };
+    const isMobileOverlay = !!profile.isMobile;
+
+    if (this.hudCamera) {
+      this.cameras.remove(this.hudCamera, true);
+      this.hudCamera = null;
+    }
+
+    this.children.removeAll(true);
+
+    const totalLevels = CubePathStorage.getTotalLevels(this.gameMode);
+    let totalBestTime = 0;
+    let totalBestMoves = 0;
+    let completedCount = 0;
+
+    for (let i = 0; i < totalLevels; i++) {
+      const bestTime = CubePathStorage.getBestTime(this.gameMode, i);
+      const bestMoves = CubePathStorage.getBestMoves(this.gameMode, i);
+      if (bestTime !== null && bestMoves !== null) {
+        totalBestTime += bestTime;
+        totalBestMoves += bestMoves;
+        completedCount++;
+      }
+    }
+
+    const panel = this.createStyledOverlayPanel({
+      width: isMobileOverlay
+        ? (profile.isPortrait ? Math.min(this.scale.width - 28, 360) : Math.min(this.scale.width - 48, 500))
+        : 580,
+      height: isMobileOverlay
+        ? (profile.isPortrait ? 360 : 324)
+        : 340,
+      title: this.gameMode === 'tutorial'
+        ? '\u041e\u0431\u0443\u0447\u0435\u043d\u0438\u0435 \u043f\u0440\u043e\u0439\u0434\u0435\u043d\u043e!'
+        : '\u041a\u0430\u043c\u043f\u0430\u043d\u0438\u044f \u043f\u0440\u043e\u0439\u0434\u0435\u043d\u0430!',
+      titleColor: '#ffffff',
+      titleStroke: '#6dbb80'
+    });
+
+    const { cx, cy } = panel;
+    const top = cy - panel.panelHeight / 2;
+    const bottom = cy + panel.panelHeight / 2;
+    const textWidth = Math.min(panel.panelWidth - 46, this.scale.width - 58);
+    const statsText = completedCount > 0
+      ? `\u0421\u0443\u043c\u043c\u0430 \u043b\u0443\u0447\u0448\u0438\u0445 \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442\u043e\u0432:\n${totalBestTime.toFixed(1)}\u0441 / ${totalBestMoves} \u0445\u043e\u0434\u043e\u0432`
+      : '\u041b\u0443\u0447\u0448\u0438\u0435 \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442\u044b \u043f\u043e\u043a\u0430 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u044b';
+
+    panel.titleText.setY(top + (isMobileOverlay ? 42 : 52));
+
+    const stats = this.add.text(
+      cx,
+      top + (isMobileOverlay ? 130 : 144),
+      statsText,
+      this.makeUiTextStyle({
+        size: isMobileOverlay ? (profile.isPortrait ? 17 : 18) : 20,
+        color: '#5f7891',
+        stroke: '#ffffff',
+        strokeThickness: 1
+      })
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(12005);
+    stats.setAlign('center');
+    stats.setWordWrapWidth(textWidth, true);
+    this.fitTextToBox(stats, textWidth, panel.panelHeight - (isMobileOverlay ? 188 : 186), 12);
+
+    const replayBtn = this.createStyledUiButton(
+      cx,
+      bottom - (isMobileOverlay ? 84 : 88),
+      isMobileOverlay ? Math.min(panel.panelWidth - 48, 220) : 230,
+      isMobileOverlay ? 40 : 42,
+      '\u0418\u0433\u0440\u0430\u0442\u044c \u0437\u0430\u043d\u043e\u0432\u043e',
+      () => {
+        this.currentLevelIndex = 0;
+        if (this.gameMode === 'tutorial') {
+          this.unlockedLevelIndex = 0;
+        }
+        this.saveProgress();
+        this.loadLevel(0);
+      },
+      { textSize: isMobileOverlay ? 12 : 16, theme: 'green' }
+    );
+
+    const menuBtn = this.createStyledUiButton(
+      cx,
+      bottom - (isMobileOverlay ? 38 : 40),
+      isMobileOverlay ? Math.min(panel.panelWidth - 72, 184) : 190,
+      isMobileOverlay ? 36 : 42,
+      '\u0412 \u043c\u0435\u043d\u044e',
+      () => {
+        CubePathAudio.stopMusic(this);
+        this.scene.start('MenuScene');
+      },
+      { textSize: isMobileOverlay ? 12 : 16, theme: 'blue' }
+    );
+
+    this.resultUi = [
+      panel.overlay,
+      panel.shadow,
+      panel.panel,
+      panel.inner,
+      panel.gloss,
+      panel.titleText,
+      stats,
+      ...replayBtn,
+      ...menuBtn
+    ];
+
+    this.fixHudToCamera();
+  }
+
+  showLevelCompleteScreen(result, options = {}) {
+    this.clearResultMenu();
+    this.activeOverlayKind = 'levelComplete';
+    this.lastLevelCompleteResult = { ...result };
+    const components = this.buildStarComponents(result);
+    const profile = this.deviceProfile || window.CubePathDevice?.getProfile?.(this) || { isMobile: false, isPortrait: false };
+    const isMobileResult = !!profile.isMobile;
+    const skipRewards = options.skipRewards === true;
+    let gainedCubeCoins = Number.isFinite(options.gainedCubeCoinsOverride) ? options.gainedCubeCoinsOverride : 0;
+
+    if (!skipRewards) {
+      const rewardResult = CubePathStorage.awardCubeCoinsForNewStars(
+        this.gameMode,
+        this.currentLevelIndex,
+        components
+      );
+
+      gainedCubeCoins = rewardResult.gainedCubeCoins;
+    }
+
+    this.lastLevelCompleteCubeCoins = gainedCubeCoins;
+
+    if (this.hudCamera) {
+      this.cameras.remove(this.hudCamera, true);
+      this.hudCamera = null;
+    }
+
+    const panel = this.createStyledOverlayPanel({
+      width: isMobileResult
+        ? (profile.isPortrait ? Math.min(this.scale.width - 24, 360) : Math.min(this.scale.width - 48, 520))
+        : 610,
+      height: isMobileResult
+        ? (profile.isPortrait ? 470 : 372)
+        : (this.gameMode === 'campaign' ? 540 : 485),
+      title: '\u0423\u0440\u043e\u0432\u0435\u043d\u044c \u043f\u0440\u043e\u0439\u0434\u0435\u043d!',
+      titleColor: '#ffffff',
+      titleStroke: '#6fa6d1'
+    });
+
+    const { cx, cy } = panel;
+    const watchBoostLabel = '\u0421\u043c\u043e\u0442\u0440\u0435\u0442\u044c \u0440\u0435\u043a\u043b\u0430\u043c\u0443 \u0437\u0430\n\u0441\u043b\u0443\u0447\u0430\u0439\u043d\u044b\u0439 \u0431\u0443\u0441\u0442';
+
+    if (isMobileResult) {
+      const top = cy - panel.panelHeight / 2;
+      const bottom = cy + panel.panelHeight / 2;
+      const metricX = cx - (profile.isPortrait ? 80 : 86);
+      const pairGap = profile.isPortrait ? 14 : 16;
+      const pairWidth = Math.max(106, Math.floor((panel.panelWidth - 44 - pairGap) / 2));
+      const pairOffset = pairWidth / 2 + pairGap / 2;
+      const firstRowY = bottom - (profile.isPortrait ? 112 : 98);
+      const menuRowY = bottom - (profile.isPortrait ? 70 : 58);
+      const adRowY = bottom - (profile.isPortrait ? 28 : 18);
+      const rewardIconX = cx - (profile.isPortrait ? 78 : 54);
+
+      panel.titleText.setY(top + (profile.isPortrait ? 42 : 38));
+
+      const starNodes = this.createStarRow(cx, top + (profile.isPortrait ? 96 : 86), result.stars);
+      const divider = this.add.rectangle(
+        cx,
+        top + (profile.isPortrait ? 144 : 128),
+        Math.min(280, this.scale.width - 56),
+        2,
+        0xffffff,
+        0.18
+      ).setScrollFactor(0).setDepth(12004);
+
+      const timeNodes = this.createMetricRow(
+        metricX,
+        top + (profile.isPortrait ? 174 : 158),
+        '\u231B',
+        `${result.timeSeconds.toFixed(1)}\u0441 / ${result.parTime.toFixed(1)}\u0441`,
+        'blue'
+      );
+
+      const coinNodes = this.createMetricRow(
+        metricX,
+        top + (profile.isPortrait ? 206 : 192),
+        'STAR_HALF',
+        `${this.coinsCollected}/${this.coinsTotal}`,
+        'gold'
+      );
+
+      const rewardY = top + (profile.isPortrait ? 226 : 216);
+      const rewardCube = this.createRewardCubeIcon(
+        rewardIconX,
+        rewardY,
+        profile.isPortrait ? 0.72 : 0.78
+      );
+      const rewardText = this.add.text(
+        rewardIconX + 52,
+        rewardY + 6,
+        `+${gainedCubeCoins}`,
+        this.makeUiTextStyle({
+          size: profile.isPortrait ? 20 : 23,
+          color: '#ffd54a',
+          stroke: '#c98b11',
+          strokeThickness: 2,
+          shadowColor: '#fff0c8',
+          shadowBlur: 4
+        })
+      ).setOrigin(0, 0.5).setScrollFactor(0).setDepth(12007);
+      this.fitTextToBox(rewardText, panel.panelWidth - 120, 28, 12);
+
+      const restartBtn = this.createStyledUiButton(
+        cx - pairOffset,
+        firstRowY,
+        pairWidth,
+        profile.isPortrait ? 38 : 40,
+        '\u0420\u0435\u0441\u0442\u0430\u0440\u0442',
+        () => {
+          this.clearResultMenu();
+          this.resetCurrentLevel();
+        },
+        { textSize: profile.isPortrait ? 11 : 12, theme: 'blue' }
+      );
+
+      const nextBtn = this.createStyledUiButton(
+        cx + pairOffset,
+        firstRowY,
+        pairWidth,
+        profile.isPortrait ? 38 : 40,
+        '\u0414\u0430\u043b\u0435\u0435',
+        () => {
+          this.clearResultMenu();
+          this.advanceAfterWin();
+        },
+        { textSize: profile.isPortrait ? 11 : 12, theme: 'green' }
+      );
+
+      const menuBtn = this.createStyledUiButton(
+        cx,
+        menuRowY,
+        Math.min(panel.panelWidth - 36, profile.isPortrait ? 188 : 206),
+        profile.isPortrait ? 34 : 36,
+        '\u0412 \u043c\u0435\u043d\u044e',
+        () => {
+          this.clearResultMenu();
+          CubePathAudio.stopMusic(this);
+          this.scene.start('MenuScene');
+        },
+        { textSize: profile.isPortrait ? 11 : 12, theme: 'gray' }
+      );
+
+      const adBtn = this.createStyledUiButton(
+        cx,
+        adRowY,
+        Math.min(panel.panelWidth - 32, profile.isPortrait ? 286 : 296),
+        profile.isPortrait ? 40 : 38,
+        watchBoostLabel,
+        () => {
+          this.showRewardedRandomBoost();
+        },
+        { textSize: profile.isPortrait ? 10 : 11, theme: 'orange' }
+      );
+
+      this.resultUi = [
+        panel.overlay,
+        panel.shadow,
+        panel.panel,
+        panel.inner,
+        panel.gloss,
+        panel.titleText,
+        ...starNodes,
+        divider,
+        ...timeNodes,
+        ...coinNodes,
+        rewardCube,
+        rewardText,
+        ...restartBtn,
+        ...nextBtn,
+        ...menuBtn,
+        ...adBtn
+      ];
+
+      this.fixHudToCamera();
+      return;
+    }
+
+    const progressNodes = this.gameMode === 'campaign'
+      ? this.createTopStarProgressBar(cx, cy - 212, 410)
+      : [];
+
+    panel.titleText.setY(cy - 154);
+
+    const starNodes = this.createStarRow(cx, cy - 74, result.stars);
+    const divider1 = this.add.rectangle(cx, cy - 6, 380, 2, 0xffffff, 0.18)
+      .setScrollFactor(0).setDepth(12004);
+    const divider2 = this.add.rectangle(cx, cy + 58, 380, 2, 0xffffff, 0.18)
+      .setScrollFactor(0).setDepth(12004);
+
+    const timeNodes = this.createMetricRow(
+      cx - 124,
+      cy + 24,
+      '\u231B',
+      `${result.timeSeconds.toFixed(1)}\u0441 / ${result.parTime.toFixed(1)}\u0441`,
+      'blue'
+    );
+
+    const coinNodes = this.createMetricRow(
+      cx + 106,
+      cy + 24,
+      'STAR_HALF',
+      `${this.coinsCollected}/${this.coinsTotal}`,
+      'gold'
+    );
+
+    const rewardCube = this.createRewardCubeIcon(cx - 30, cy + 98, 0.92);
+    const rewardText = this.add.text(
+      cx + 46,
+      cy + 106,
+      `+${gainedCubeCoins}`,
+      this.makeUiTextStyle({
+        size: 33,
+        color: '#ffd54a',
+        stroke: '#c98b11',
+        strokeThickness: 2,
+        shadowColor: '#fff0c8',
+        shadowBlur: 4
+      })
+    ).setOrigin(0, 0.5).setScrollFactor(0).setDepth(12007);
+    this.fitTextToBox(rewardText, 190, 36, 14);
+
+    const menuBtn = this.createStyledUiButton(
+      cx - 160,
+      cy + 178,
+      140,
+      42,
+      '\u0412 \u043c\u0435\u043d\u044e',
+      () => {
+        CubePathAudio.stopMusic(this);
+        this.scene.start('MenuScene');
+      },
+      { textSize: 14, theme: 'gray' }
+    );
+
+    const restartBtn = this.createStyledUiButton(
+      cx,
+      cy + 178,
+      170,
+      42,
+      '\u0420\u0435\u0441\u0442\u0430\u0440\u0442',
+      () => {
+        this.resetCurrentLevel();
+      },
+      { textSize: 14, theme: 'blue' }
+    );
+
+    const nextBtn = this.createStyledUiButton(
+      cx + 160,
+      cy + 178,
+      140,
+      42,
+      '\u0414\u0430\u043b\u0435\u0435',
+      () => {
+        this.advanceAfterWin();
+      },
+      { textSize: 14, theme: 'green' }
+    );
+
+    const adBtn = this.createStyledUiButton(
+      cx,
+      cy + 228,
+      340,
+      42,
+      '\u0421\u043c\u043e\u0442\u0440\u0435\u0442\u044c \u0440\u0435\u043a\u043b\u0430\u043c\u0443 \u0437\u0430 \u0441\u043b\u0443\u0447\u0430\u0439\u043d\u044b\u0439 \u0431\u0443\u0441\u0442',
+      () => {
+        this.showRewardedRandomBoost();
+      },
+      { textSize: 13, theme: 'orange' }
+    );
+
+    this.resultUi = [
+      panel.overlay,
+      panel.shadow,
+      panel.panel,
+      panel.inner,
+      panel.gloss,
+      panel.titleText,
+      ...progressNodes,
+      ...starNodes,
+      divider1,
+      divider2,
+      ...timeNodes,
+      ...coinNodes,
+      rewardCube,
+      rewardText,
+      ...menuBtn,
+      ...restartBtn,
+      ...nextBtn,
+      ...adBtn
+    ];
+
+    this.fixHudToCamera();
+  }
+
+  showSecondChanceMenu() {
+    this.clearSecondChanceMenu();
+    this.activeOverlayKind = 'secondChance';
+
+    if (this.hudCamera) {
+      this.cameras.remove(this.hudCamera, true);
+      this.hudCamera = null;
+    }
+
+    const profile = this.deviceProfile || window.CubePathDevice?.getProfile?.(this) || { isMobile: false, isPortrait: false };
+    const isMobileOverlay = !!profile.isMobile;
+
+    const panel = this.createStyledOverlayPanel({
+      width: isMobileOverlay
+        ? (profile.isPortrait ? Math.min(this.scale.width - 28, 360) : Math.min(this.scale.width - 48, 480))
+        : 520,
+      height: isMobileOverlay
+        ? (profile.isPortrait ? 384 : 308)
+        : 300,
+      title: '\u0422\u044b \u043f\u0440\u043e\u0438\u0433\u0440\u0430\u043b',
+      titleColor: '#ffffff',
+      titleStroke: '#d57d7d'
+    });
+
+    const { cx, cy } = panel;
+    const top = cy - panel.panelHeight / 2;
+    const bottom = cy + panel.panelHeight / 2;
+    const textWidth = Math.min(panel.panelWidth - 42, this.scale.width - 56);
+
+    panel.titleText.setY(top + (isMobileOverlay ? 42 : 48));
+
+    const subtitle = this.add.text(
+      cx,
+      top + (isMobileOverlay ? 94 : 102),
+      '\u0418\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u044c \u0432\u0442\u043e\u0440\u043e\u0439 \u0448\u0430\u043d\u0441?',
+      this.makeUiTextStyle({
+        size: isMobileOverlay ? (profile.isPortrait ? 17 : 19) : 22,
+        color: '#5f7891',
+        stroke: '#ffffff',
+        strokeThickness: 1
+      })
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(12005);
+    subtitle.setAlign('center');
+    subtitle.setWordWrapWidth(textWidth, true);
+    this.fitTextToBox(subtitle, textWidth, isMobileOverlay ? 30 : 36, 12);
+
+    const hint = this.add.text(
+      cx,
+      top + (isMobileOverlay ? 138 : 150),
+      '\u0412\u043e\u0437\u0432\u0440\u0430\u0442 \u043d\u0430 \u043f\u043e\u0441\u043b\u0435\u0434\u043d\u044e\u044e\n\u0431\u0435\u0437\u043e\u043f\u0430\u0441\u043d\u0443\u044e \u043a\u043b\u0435\u0442\u043a\u0443',
+      this.makeUiTextStyle({
+        size: isMobileOverlay ? (profile.isPortrait ? 13 : 14) : 15,
+        color: '#6f87a0',
+        stroke: '#ffffff',
+        strokeThickness: 1,
+        align: 'center'
+      })
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(12005);
+    hint.setAlign('center');
+    hint.setWordWrapWidth(textWidth, true);
+    this.fitTextToBox(hint, textWidth, isMobileOverlay ? 42 : 46, 10);
+
+    let restartBtn;
+    let secondChanceBtn;
+    let menuBtn;
+
+    if (isMobileOverlay && profile.isPortrait) {
+      const buttonW = panel.panelWidth - 38;
+      restartBtn = this.createStyledUiButton(
+        cx,
+        bottom - 136,
+        buttonW,
+        38,
+        '\u0420\u0435\u0441\u0442\u0430\u0440\u0442',
+        () => {
+          this.clearSecondChanceMenu();
+          this.resetCurrentLevel();
+        },
+        { textSize: 11, theme: 'gray' }
+      );
+
+      secondChanceBtn = this.createStyledUiButton(
+        cx,
+        bottom - 88,
+        buttonW,
+        42,
+        '\u0421\u043c\u043e\u0442\u0440\u0435\u0442\u044c \u0440\u0435\u043a\u043b\u0430\u043c\u0443 \u0437\u0430\n\u0432\u0442\u043e\u0440\u043e\u0439 \u0448\u0430\u043d\u0441',
+        () => {
+          this.showRewardedSecondChance();
+        },
+        { textSize: 10, theme: 'green' }
+      );
+
+      menuBtn = this.createStyledUiButton(
+        cx,
+        bottom - 40,
+        Math.min(panel.panelWidth - 92, 188),
+        34,
+        '\u0412 \u043c\u0435\u043d\u044e',
+        () => {
+          this.clearSecondChanceMenu();
+          CubePathAudio.stopMusic(this);
+          this.scene.start('MenuScene');
+        },
+        { textSize: 11, theme: 'blue' }
+      );
+    } else {
+      const firstRowY = bottom - (isMobileOverlay ? 84 : 88);
+      const menuRowY = bottom - (isMobileOverlay ? 38 : 40);
+      restartBtn = this.createStyledUiButton(
+        cx - (isMobileOverlay ? 84 : 120),
+        firstRowY,
+        isMobileOverlay ? 128 : 140,
+        isMobileOverlay ? 38 : 42,
+        '\u0420\u0435\u0441\u0442\u0430\u0440\u0442',
+        () => {
+          this.clearSecondChanceMenu();
+          this.resetCurrentLevel();
+        },
+        { textSize: isMobileOverlay ? 12 : 14, theme: 'gray' }
+      );
+
+      secondChanceBtn = this.createStyledUiButton(
+        cx + (isMobileOverlay ? 40 : 120),
+        firstRowY,
+        isMobileOverlay ? Math.min(panel.panelWidth - 194, 188) : 210,
+        isMobileOverlay ? 44 : 46,
+        '\u0421\u043c\u043e\u0442\u0440\u0435\u0442\u044c \u0440\u0435\u043a\u043b\u0430\u043c\u0443 \u0437\u0430\n\u0432\u0442\u043e\u0440\u043e\u0439 \u0448\u0430\u043d\u0441',
+        () => {
+          this.showRewardedSecondChance();
+        },
+        { textSize: isMobileOverlay ? 10 : 13, theme: 'green' }
+      );
+
+      menuBtn = this.createStyledUiButton(
+        cx,
+        menuRowY,
+        isMobileOverlay ? 170 : 150,
+        isMobileOverlay ? 34 : 36,
+        '\u0412 \u043c\u0435\u043d\u044e',
+        () => {
+          this.clearSecondChanceMenu();
+          CubePathAudio.stopMusic(this);
+          this.scene.start('MenuScene');
+        },
+        { textSize: isMobileOverlay ? 12 : 13, theme: 'blue' }
+      );
+    }
+
+    this.secondChanceUi = [
+      panel.overlay,
+      panel.shadow,
+      panel.panel,
+      panel.inner,
+      panel.gloss,
+      panel.titleText,
+      subtitle,
+      hint,
+      ...restartBtn,
+      ...secondChanceBtn,
+      ...menuBtn
+    ];
+
+    this.fixHudToCamera();
+  }
+
+  showSurvivalGameOver() {
+    this.clearBreakTimers();
+    this.clearResultMenu();
+    this.activeOverlayKind = 'survivalGameOver';
+    this.children.removeAll(true);
+    const profile = this.deviceProfile || window.CubePathDevice?.getProfile?.(this) || { isMobile: false, isPortrait: false };
+    const isMobileOverlay = !!profile.isMobile;
+
+    const best = CubePathStorage.getSurvivalBest();
+
+    const panel = this.createStyledOverlayPanel({
+      width: isMobileOverlay
+        ? (profile.isPortrait ? Math.min(this.scale.width - 28, 356) : Math.min(this.scale.width - 48, 460))
+        : 500,
+      height: isMobileOverlay
+        ? (profile.isPortrait ? 312 : 280)
+        : 280,
+      title: '\u0417\u0430\u0431\u0435\u0433 \u043e\u043a\u043e\u043d\u0447\u0435\u043d',
+      titleColor: '#ffffff',
+      titleStroke: '#d57d7d'
+    });
+
+    const { cx, cy } = panel;
+    const top = cy - panel.panelHeight / 2;
+    const bottom = cy + panel.panelHeight / 2;
+
+    panel.titleText.setY(top + (isMobileOverlay ? 42 : 48));
+
+    const passedText = this.add.text(
+      cx,
+      top + (isMobileOverlay ? 98 : 106),
+      `\u041f\u0440\u043e\u0439\u0434\u0435\u043d\u043e \u0443\u0440\u043e\u0432\u043d\u0435\u0439: ${this.currentLevelIndex}`,
+      this.makeUiTextStyle({
+        size: isMobileOverlay ? (profile.isPortrait ? 16 : 18) : 22,
+        color: '#5f7891',
+        stroke: '#ffffff',
+        strokeThickness: 1
+      })
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(12005);
+    passedText.setAlign('center');
+    this.fitTextToBox(passedText, panel.panelWidth - 44, 28, 12);
+
+    const bestText = this.add.text(
+      cx,
+      top + (isMobileOverlay ? 136 : 148),
+      `\u041b\u0443\u0447\u0448\u0438\u0439 \u0440\u0435\u0437\u0443\u043b\u044c\u0442\u0430\u0442: ${best}`,
+      this.makeUiTextStyle({
+        size: isMobileOverlay ? (profile.isPortrait ? 14 : 15) : 17,
+        color: '#6f87a0',
+        stroke: '#ffffff',
+        strokeThickness: 1
+      })
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(12005);
+    bestText.setAlign('center');
+    this.fitTextToBox(bestText, panel.panelWidth - 44, 24, 11);
+
+    const restartBtn = this.createStyledUiButton(
+      cx,
+      bottom - (isMobileOverlay ? 84 : 82),
+      isMobileOverlay ? 188 : 210,
+      40,
+      '\u041d\u043e\u0432\u044b\u0439 \u0437\u0430\u0431\u0435\u0433',
+      () => {
+        this.currentLevelIndex = 0;
+        this.currentCampaignLayout = null;
+        this.currentCampaignSeed = null;
+        this.loadLevel(0);
+      },
+      { textSize: isMobileOverlay ? 12 : 14, theme: 'green' }
+    );
+
+    const menuBtn = this.createStyledUiButton(
+      cx,
+      bottom - 38,
+      isMobileOverlay ? 164 : 180,
+      isMobileOverlay ? 36 : 40,
+      '\u0412 \u043c\u0435\u043d\u044e',
+      () => {
+        CubePathAudio.stopMusic(this);
+        this.scene.start('MenuScene');
+      },
+      { textSize: isMobileOverlay ? 12 : 14, theme: 'blue' }
+    );
+
+    this.resultUi = [
+      panel.overlay,
+      panel.shadow,
+      panel.panel,
+      panel.inner,
+      panel.gloss,
+      panel.titleText,
+      passedText,
+      bestText,
+      ...restartBtn,
+      ...menuBtn
+    ];
+
+    this.fixHudToCamera();
+  }
+
   resetCurrentLevel() {
     this.clearResultMenu();
     this.clearPauseMenu();

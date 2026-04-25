@@ -142,35 +142,41 @@ class ShopScene extends Phaser.Scene {
                 hintY: 28,
                 hintSize: 14,
                 scrollBarOffset: 14,
-                showScrollHint: true
+                showScrollHint: false
             };
         }
 
         const safe = profile.safePadding + 6;
-        const headerTitleY = profile.isPortrait ? 34 : 24;
-        const currencyY = profile.isPortrait ? 68 : 48;
-        const topButtonH = profile.isPortrait ? 52 : Math.max(42, Math.min(48, Math.round(profile.touchTarget * 0.78)));
-        const menuButtonW = profile.isPortrait ? 118 : 108;
-        const adButtonW = profile.isPortrait ? 164 : 146;
-        const topButtonsY = profile.isPortrait ? 110 : 84;
-        const tabsY = topButtonsY + topButtonH / 2 + (profile.isPortrait ? 34 : 26);
+        const buttonGap = profile.isPortrait ? 10 : 8;
+        const headerTitleY = profile.isPortrait ? 30 : 22;
+        const currencyY = profile.isPortrait ? 60 : 44;
+        const topButtonH = profile.isPortrait ? Math.max(44, Math.min(50, Math.round(profile.touchTarget * 0.72))) : Math.max(40, Math.min(46, Math.round(profile.touchTarget * 0.74)));
+        const availableTopWidth = Math.max(180, width - safe * 2);
+        const menuButtonW = profile.isPortrait
+            ? Math.max(104, Math.min(132, Math.floor((availableTopWidth - buttonGap) * 0.38)))
+            : Math.max(96, Math.min(116, Math.floor((availableTopWidth - buttonGap) * 0.4)));
+        const adButtonW = Math.max(126, availableTopWidth - menuButtonW - buttonGap);
+        const topButtonsY = profile.isPortrait ? 98 : 78;
+        const tabsY = topButtonsY + topButtonH / 2 + (profile.isPortrait ? 28 : 22);
         const tabH = profile.isPortrait ? 52 : 46;
         const tabW = Math.floor((width - safe * 2) / 3);
         const previewMode = profile.isPortrait ? 'bottom' : 'side';
         const scrollX = safe;
-        const scrollY = tabsY + tabH / 2 + (profile.isPortrait ? 26 : 22);
+        const scrollY = tabsY + tabH / 2 + (profile.isPortrait ? 20 : 18);
         const previewW = previewMode === 'bottom'
             ? width - safe * 2
             : Math.min(220, Math.floor(width * 0.28));
         const scrollW = previewMode === 'bottom'
             ? width - safe * 2
             : width - safe * 2 - previewW - 18;
-        const previewH = previewMode === 'bottom' ? 108 : 152;
+        const previewH = previewMode === 'bottom'
+            ? (profile.isPortrait ? 90 : 102)
+            : 146;
         const previewY = previewMode === 'bottom'
-            ? height - 92
+            ? height - (profile.isPortrait ? 78 : 88)
             : scrollY + 76;
         const scrollH = previewMode === 'bottom'
-            ? Math.max(168, height - scrollY - previewH - (profile.isPortrait ? 88 : 70))
+            ? Math.max(150, height - scrollY - previewH - (profile.isPortrait ? 60 : 62))
             : Math.max(150, height - scrollY - 46);
         const scrollViewport = {
             x: scrollX,
@@ -181,9 +187,9 @@ class ShopScene extends Phaser.Scene {
 
         return {
             headerTitleY,
-            headerTitleSize: profile.isPortrait ? 34 : 26,
+            headerTitleSize: profile.isPortrait ? 30 : 24,
             currencyY,
-            currencySize: profile.isPortrait ? 18 : 16,
+            currencySize: profile.isPortrait ? 16 : 15,
             menuButtonX: width - safe - menuButtonW / 2,
             menuButtonY: topButtonsY,
             menuButtonW,
@@ -203,35 +209,35 @@ class ShopScene extends Phaser.Scene {
             previewY,
             previewW,
             previewH,
-            previewTitleY: previewMode === 'bottom' ? previewY - 34 : previewY - 72,
-            previewCubeX: previewMode === 'bottom' ? width / 2 - previewW / 2 + 70 : width - safe - previewW / 2,
-            previewCubeY: previewMode === 'bottom' ? previewY + 4 : previewY + 6,
+            previewTitleY: previewMode === 'bottom' ? previewY - 28 : previewY - 68,
+            previewCubeX: previewMode === 'bottom' ? width / 2 - previewW / 2 + 58 : width - safe - previewW / 2,
+            previewCubeY: previewMode === 'bottom' ? previewY + 1 : previewY + 6,
             previewCubeSize: previewMode === 'bottom'
-                ? { w: 34, h: 22, depth: 16 }
+                ? { w: 28, h: 18, depth: 14 }
                 : { w: 36, h: 24, depth: 18 },
-            previewSkinX: previewMode === 'bottom' ? width / 2 - previewW / 2 + 122 : width - safe - previewW / 2,
+            previewSkinX: previewMode === 'bottom' ? width / 2 - previewW / 2 + 104 : width - safe - previewW / 2,
             previewSkinY: previewMode === 'bottom' ? previewY - 12 : previewY + 50,
-            previewHatX: previewMode === 'bottom' ? width / 2 - previewW / 2 + 122 : width - safe - previewW / 2,
-            previewHatY: previewMode === 'bottom' ? previewY + 16 : previewY + 74,
+            previewHatX: previewMode === 'bottom' ? width / 2 - previewW / 2 + 104 : width - safe - previewW / 2,
+            previewHatY: previewMode === 'bottom' ? previewY + 14 : previewY + 74,
             previewLabelAlign: previewMode === 'bottom' ? 'left' : 'center',
             previewLabelOrigin: previewMode === 'bottom' ? 0 : 0.5,
             catalogColumns: profile.isPortrait ? 1 : 2,
-            catalogCardW: profile.isPortrait ? Math.min(scrollW - 18, 296) : Math.min(Math.floor((scrollW - 18) / 2) - 8, 260),
-            catalogCardH: profile.isPortrait ? 188 : 170,
+            catalogCardW: profile.isPortrait ? Math.min(scrollW - 18, 292) : Math.min(Math.floor((scrollW - 18) / 2) - 8, 252),
+            catalogCardH: profile.isPortrait ? 176 : 164,
             catalogGapX: profile.isPortrait ? 0 : 18,
-            catalogGapY: profile.isPortrait ? 22 : 18,
-            cosmeticStartY: 36,
+            catalogGapY: profile.isPortrait ? 18 : 16,
+            cosmeticStartY: 28,
             boostColumns: profile.isPortrait ? 1 : 2,
             boostCardW: profile.isPortrait ? scrollW - 18 : Math.min(Math.floor((scrollW - 16) / 2), 300),
-            boostCardH: profile.isPortrait ? 244 : 208,
+            boostCardH: profile.isPortrait ? 214 : 198,
             boostGapX: 16,
-            boostStartY: 28,
-            boostButtonW: profile.isPortrait ? Math.min(scrollW - 74, 220) : 180,
-            boostButtonH: profile.isPortrait ? 52 : 44,
+            boostStartY: 18,
+            boostButtonW: profile.isPortrait ? Math.min(scrollW - 56, 220) : 176,
+            boostButtonH: profile.isPortrait ? 48 : 42,
             hintY: 22,
             hintSize: profile.isPortrait ? 13 : 11,
             scrollBarOffset: 12,
-            showScrollHint: !profile.isPortrait
+            showScrollHint: false
         };
     }
     bindSceneCleanup() {
@@ -426,7 +432,7 @@ class ShopScene extends Phaser.Scene {
         const { width } = this.scale;
         const layout = this.layout;
 
-        this.add.text(width / 2, layout.headerTitleY, 'Магазин', {
+        const title = this.add.text(width / 2, layout.headerTitleY, 'Магазин', {
             fontSize: `${layout.headerTitleSize}px`,
             color: '#fff7ea',
             fontStyle: 'bold',
@@ -440,6 +446,7 @@ class ShopScene extends Phaser.Scene {
                 fill: false
             }
         }).setOrigin(0.5);
+        this.fitTextToBox(title, Math.max(120, width - 42), 48, 18);
 
         this.currencyText = this.add.text(width / 2, layout.currencyY, '', {
             fontSize: `${layout.currencySize}px`,
@@ -453,6 +460,7 @@ class ShopScene extends Phaser.Scene {
                 fill: false
             }
         }).setOrigin(0.5);
+        this.fitTextToBox(this.currencyText, Math.max(120, width - 44), 30, 11);
 
         this.createTopButton(layout.menuButtonX, layout.menuButtonY, layout.menuButtonW, layout.menuButtonH, 'В меню', () => {
             this.scene.start('MenuScene');
@@ -718,6 +726,7 @@ class ShopScene extends Phaser.Scene {
             text.setLineSpacing(-2);
             text.setWordWrapWidth(Math.max(40, w - 18), true);
         }
+        this.fitTextToBox(text, w - 18, h - 8, this.profile?.isMobile ? 10 : 11);
 
         const setScaleAll = (scale) => {
             bg.setScale(scale);
@@ -945,6 +954,7 @@ class ShopScene extends Phaser.Scene {
                 shadowBlur: 3
             })
         ).setOrigin(layout.previewLabelOrigin, 0.5);
+        this.fitTextToBox(this.previewSkinLabel, layout.previewMode === 'bottom' ? layout.previewW - 126 : layout.previewW - 34, 24, 10);
 
         this.previewHatLabel = this.add.text(
             layout.previewHatX,
@@ -959,6 +969,7 @@ class ShopScene extends Phaser.Scene {
                 shadowBlur: 3
             })
         ).setOrigin(layout.previewLabelOrigin, 0.5);
+        this.fitTextToBox(this.previewHatLabel, layout.previewMode === 'bottom' ? layout.previewW - 126 : layout.previewW - 34, 24, 10);
 
         this.redrawPreviewCube();
 
@@ -993,7 +1004,8 @@ class ShopScene extends Phaser.Scene {
         );
     }
     refreshHeader() {
-        this.currencyText.setText(`Кубикоинов:  ${CubePathStorage.getCubeCoins()}`);
+        this.currencyText.setText(`Кубикоинов: ${CubePathStorage.getCubeCoins()}`);
+        this.fitTextToBox(this.currencyText, Math.max(120, this.scale.width - 44), 30, 11);
         this.redrawPreviewCube();
 
         if (this.previewSkinLabel) {
@@ -1002,6 +1014,7 @@ class ShopScene extends Phaser.Scene {
             if (this.layout.previewLabelAlign === 'left') {
                 this.previewSkinLabel.setAlign('left');
             }
+            this.fitTextToBox(this.previewSkinLabel, this.layout.previewMode === 'bottom' ? this.layout.previewW - 126 : this.layout.previewW - 34, 24, 10);
         }
 
         if (this.previewHatLabel) {
@@ -1010,6 +1023,7 @@ class ShopScene extends Phaser.Scene {
             if (this.layout.previewLabelAlign === 'left') {
                 this.previewHatLabel.setAlign('left');
             }
+            this.fitTextToBox(this.previewHatLabel, this.layout.previewMode === 'bottom' ? this.layout.previewW - 126 : this.layout.previewW - 34, 24, 10);
         }
     }
 
@@ -1110,7 +1124,18 @@ class ShopScene extends Phaser.Scene {
     }
     createText(x, y, text, style) {
         const node = this.add.text(x, y, text, style);
+        const maxWidth = style?.wordWrap?.width ?? Number.POSITIVE_INFINITY;
+        this.fitTextToBox(node, maxWidth, Number.POSITIVE_INFINITY, this.profile?.isMobile ? 10 : 11);
         return this.addContentNode(node);
+    }
+
+    fitTextToBox(text, maxWidth, maxHeight, minSize = 10) {
+        window.CubePathLayout?.fitText?.(text, {
+            maxWidth,
+            maxHeight,
+            minSize
+        });
+        return text;
     }
 
     createActionButton(x, y, w, h, label, enabled, onClick, theme = 'blue') {
@@ -1161,6 +1186,9 @@ class ShopScene extends Phaser.Scene {
                 shadowBlur: 3
             })
         ).setOrigin(0.5);
+        text.setAlign('center');
+        text.setWordWrapWidth(Math.max(40, w - 20), true);
+        this.fitTextToBox(text, w - 18, h - 8, this.profile?.isMobile ? 10 : 11);
 
         if (enabled) {
             hit.setInteractive({ useHandCursor: !profile.isMobile });
@@ -1252,6 +1280,8 @@ class ShopScene extends Phaser.Scene {
                 shadowBlur: 2
             })
         ).setOrigin(0.5);
+        text.setAlign('center');
+        this.fitTextToBox(text, badgeWidth - 10, badgeHeight - 6, 9);
 
         this.addContentNode(bg);
         this.addContentNode(text);

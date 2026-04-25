@@ -13,6 +13,11 @@ const syncViewportCssVars = () => {
   return viewport;
 };
 
+const syncDocumentTitle = () => {
+  const language = window.CubePathI18n?.getLanguage?.() || 'ru';
+  document.title = language === 'en' ? 'Cube Path' : 'Путь Кубика';
+};
+
 const isEditableTarget = (target) => {
   const element = target instanceof Element ? target : null;
   if (!element) return false;
@@ -152,6 +157,7 @@ const createGameConfig = (startupProfile) => {
 
   window.CubePathI18n?.patchPhaser?.(Phaser);
   await window.CubePathI18n?.init?.();
+  syncDocumentTitle();
 
   const startupProfile = window.CubePathDevice?.getStartupProfile?.() || { isMobile: false };
   const config = createGameConfig(startupProfile);

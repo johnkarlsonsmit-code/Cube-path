@@ -86,6 +86,7 @@ class LevelSelectScene extends Phaser.Scene {
         shadowBlur: 8
       })
     ).setOrigin(0.5).setDepth(30);
+    this.fitTextToBox(title, Math.min(width - 48, this.layout.panelW - 80), 56, 18);
 
     const menuBtn = this.createTopButton(
       this.layout.menuButtonX,
@@ -106,21 +107,6 @@ class LevelSelectScene extends Phaser.Scene {
     this.bindSceneCleanup();
     this.bindScrollInput();
 
-    const footer = this.add.text(
-      width / 2,
-      this.layout.footerY,
-      this.layout.footerText,
-      this.makeTextStyle({
-        size: this.layout.footerSize,
-        color: '#5f7891',
-        stroke: '#ffffff',
-        strokeThickness: 1,
-        shadowColor: '#ffffff',
-        shadowBlur: 3
-      })
-    ).setOrigin(0.5);
-
-    this.uiNodes.push(footer);
     this.animateUiIn();
   }
 
@@ -149,10 +135,10 @@ class LevelSelectScene extends Phaser.Scene {
         menuButtonY: 40,
         menuButtonW: 155,
         menuButtonH: 52,
-        contentStartY: 86,
+        contentStartY: 78,
         contentWidth: width - 150,
         footerY: height - 18,
-        footerText: 'Колесо мыши / свайп вверх-вниз',
+        footerText: '',
         footerSize: 14,
         contentBottomPadding: 130,
         sectionTitleSize: 28,
@@ -184,10 +170,10 @@ class LevelSelectScene extends Phaser.Scene {
       menuButtonY: profile.isPortrait ? 86 : 66,
       menuButtonW: profile.isPortrait ? 128 : 116,
       menuButtonH: Math.max(42, Math.min(48, Math.round(profile.touchTarget * 0.78))),
-      contentStartY: profile.isPortrait ? 146 : 122,
+      contentStartY: profile.isPortrait ? 132 : 112,
       contentWidth: panelW - 36,
       footerY: height - 22,
-      footerText: profile.isPortrait ? 'Свайп вверх-вниз' : 'Свайп / колесо мыши',
+      footerText: '',
       footerSize: profile.isPortrait ? 13 : 12,
       contentBottomPadding: profile.isPortrait ? 126 : 104,
       sectionTitleSize: profile.isPortrait ? 22 : 18,
@@ -493,6 +479,7 @@ class LevelSelectScene extends Phaser.Scene {
         shadowBlur: 3
       })
     ).setOrigin(0.5, 0);
+    this.fitTextToBox(titleText, cardW - 28, 30, 12);
 
     this.content.add([shadow, bg, gloss, titleText]);
 
@@ -515,6 +502,7 @@ class LevelSelectScene extends Phaser.Scene {
           wordWrap: { width: cardW - 30 }
         }
       ).setOrigin(0.5, 0);
+      this.fitTextToBox(sub, cardW - 30, cardH - 42, 10);
 
       this.content.add(sub);
     }
@@ -799,6 +787,7 @@ class LevelSelectScene extends Phaser.Scene {
         shadowBlur: 4
       })
     ).setOrigin(0.5);
+    this.fitTextToBox(text, w - 16, 26, 10);
 
     if (unlocked) {
       if (!profile.isMobile) {
@@ -852,6 +841,9 @@ class LevelSelectScene extends Phaser.Scene {
         shadowBlur: 4
       })
     ).setOrigin(0.5);
+    text.setAlign('center');
+    text.setWordWrapWidth(Math.max(36, w - 18), true);
+    this.fitTextToBox(text, w - 16, h - 10, 11);
 
     const setScaleAll = (scale) => {
       bg.setScale(scale);
@@ -913,6 +905,15 @@ class LevelSelectScene extends Phaser.Scene {
         fill: false
       }
     };
+  }
+
+  fitTextToBox(text, maxWidth, maxHeight, minSize = 10) {
+    window.CubePathLayout?.fitText?.(text, {
+      maxWidth,
+      maxHeight,
+      minSize
+    });
+    return text;
   }
 
   createRoundedRect(x, y, w, h, radius, fillColor, fillAlpha = 1, strokeColor = null, strokeAlpha = 1, strokeWidth = 0) {

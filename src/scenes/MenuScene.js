@@ -31,7 +31,7 @@ class MenuScene extends Phaser.Scene {
     const title = this.add.text(
       width / 2,
       layout.titleY,
-      'Cube Path',
+      'Путь Кубика',
       this.makeTextStyle({
         size: layout.titleSize,
         color: '#fff8ec',
@@ -42,35 +42,8 @@ class MenuScene extends Phaser.Scene {
       })
     ).setOrigin(0.5);
 
-    const subtitle = this.add.text(
-      width / 2,
-      layout.subtitleY,
-      'Аркадная puzzle-lite игра',
-      this.makeTextStyle({
-        size: layout.subtitleSize,
-        color: '#5f7891',
-        stroke: '#ffffff',
-        strokeThickness: 1,
-        shadowColor: '#ffffff',
-        shadowBlur: 3
-      })
-    ).setOrigin(0.5);
-
-    const controlsHint = this.add.text(
-      width / 2,
-      layout.hintY,
-      layout.controlsHint,
-      this.makeTextStyle({
-        size: layout.hintSize,
-        color: '#6f87a0',
-        stroke: '#ffffff',
-        strokeThickness: 1,
-        shadowColor: '#ffffff',
-        shadowBlur: 2
-      })
-    ).setOrigin(0.5);
-
-    this.menuNodes.push(title, subtitle, controlsHint);
+    this.fitTextToBox(title, Math.min(width - 48, 520), 70, 22);
+    this.menuNodes.push(title);
 
     const canContinue = CubePathStorage.canContinueCampaign();
     const isDesktopMenu = !this.profile?.isMobile;
@@ -188,21 +161,6 @@ class MenuScene extends Phaser.Scene {
       ...(settingsSideBtn?.nodes || [])
     );
 
-    const footer = this.add.text(
-      width / 2,
-      layout.footerY,
-      layout.footerText,
-      this.makeTextStyle({
-        size: layout.footerSize,
-        color: '#6f87a0',
-        stroke: '#ffffff',
-        strokeThickness: 1,
-        shadowColor: '#ffffff',
-        shadowBlur: 2
-      })
-    ).setOrigin(0.5);
-
-    this.menuNodes.push(footer);
     this.animateMenuIn();
   }
 
@@ -359,7 +317,7 @@ class MenuScene extends Phaser.Scene {
         subtitleSize: 22,
         hintY: 188,
         hintSize: 18,
-        controlsHint: 'Свайпы на телефоне, клавиши на ПК',
+        controlsHint: '',
         columns: 1,
         columnWidth: 360,
         primaryButtonWidth: 360,
@@ -367,10 +325,10 @@ class MenuScene extends Phaser.Scene {
         primaryButtonHeight: 62,
         secondaryButtonHeight: 58,
         startX: width / 2 - 180,
-        startY: 265,
+        startY: 188,
         gapX: 0,
         gapY: 13,
-        resetY: 635,
+        resetY: 555,
         resetButtonWidth: 300,
         resetButtonHeight: 50,
         settingsX: width - 118,
@@ -378,19 +336,35 @@ class MenuScene extends Phaser.Scene {
         settingsWidth: 180,
         settingsHeight: 46,
         footerY: 690,
-        footerText: 'Все клавиши и жесты — в разделе "Управление"',
+        footerText: '',
         footerSize: 15
       };
     }
 
     const safe = profile.safePadding + 8;
-    const buttonHeight = Math.min(72, Math.max(50, Math.round(profile.touchTarget * 0.75)));
-    const secondaryHeight = Math.max(buttonHeight - 4, 48);
+    const preferredButtonHeight = Math.min(72, Math.max(50, Math.round(profile.touchTarget * 0.75)));
 
     if (profile.isPortrait) {
       const buttonWidth = Math.min(width - safe * 2, 360);
-      const gapY = 12;
-      const startY = Math.max(240, Math.round(height * 0.34));
+      const topArea = 156;
+      const bottomArea = 70;
+      const stack = window.CubePathLayout?.resolveVerticalStack?.({
+        availableHeight: Math.max(300, height - topArea - bottomArea),
+        itemCount: 7,
+        preferredItemHeight: preferredButtonHeight,
+        minItemHeight: 42,
+        preferredGap: 12,
+        minGap: 8
+      }) || {
+        itemHeight: preferredButtonHeight,
+        gap: 12
+      };
+      const buttonHeight = Math.round(stack.itemHeight);
+      const secondaryHeight = Math.max(buttonHeight - 4, 42);
+      const resetButtonHeight = Math.min(48, Math.max(42, buttonHeight - 2));
+      const gapY = Math.round(stack.gap);
+      const totalHeight = buttonHeight * 6 + gapY * 6 + resetButtonHeight;
+      const startY = Math.max(topArea, Math.round(topArea + Math.max(0, (height - topArea - bottomArea - totalHeight) / 2)));
 
       return {
         titleY: 74,
@@ -399,7 +373,7 @@ class MenuScene extends Phaser.Scene {
         subtitleSize: 20,
         hintY: 156,
         hintSize: 17,
-        controlsHint: 'Свайп для телефона, клавиши для ПК',
+        controlsHint: '',
         columns: 1,
         columnWidth: buttonWidth,
         primaryButtonWidth: buttonWidth,
@@ -410,11 +384,11 @@ class MenuScene extends Phaser.Scene {
         startY,
         gapX: 0,
         gapY,
-        resetY: Math.min(height - 78, startY + 6 * (buttonHeight + gapY)),
+        resetY: startY + 6 * (buttonHeight + gapY),
         resetButtonWidth: Math.min(buttonWidth, 320),
-        resetButtonHeight: 48,
+        resetButtonHeight,
         footerY: height - 26,
-        footerText: 'Все клавиши и жесты — в "Управлении"',
+        footerText: '',
         footerSize: 14
       };
     }
@@ -423,6 +397,25 @@ class MenuScene extends Phaser.Scene {
     const columns = 2;
     const buttonWidth = Math.min(320, Math.floor((width - safe * 2 - gapX) / 2));
     const startX = (width - (columns * buttonWidth + gapX)) / 2;
+    const topArea = 88;
+    const bottomArea = 42;
+    const stack = window.CubePathLayout?.resolveVerticalStack?.({
+      availableHeight: Math.max(220, height - topArea - bottomArea),
+      itemCount: 4,
+      preferredItemHeight: preferredButtonHeight,
+      minItemHeight: 40,
+      preferredGap: 12,
+      minGap: 8
+    }) || {
+      itemHeight: preferredButtonHeight,
+      gap: 12
+    };
+    const buttonHeight = Math.round(stack.itemHeight);
+    const secondaryHeight = Math.max(buttonHeight - 4, 40);
+    const resetButtonHeight = Math.min(42, Math.max(38, buttonHeight - 2));
+    const gapY = Math.round(stack.gap);
+    const totalHeight = buttonHeight * 3 + gapY * 3 + resetButtonHeight;
+    const startY = Math.max(topArea, Math.round(topArea + Math.max(0, (height - topArea - bottomArea - totalHeight) / 2)));
 
     return {
       titleY: 42,
@@ -431,7 +424,7 @@ class MenuScene extends Phaser.Scene {
       subtitleSize: 17,
       hintY: 104,
       hintSize: 14,
-      controlsHint: 'Свайп для телефона, клавиши для ПК',
+      controlsHint: '',
       columns,
       columnWidth: buttonWidth,
       primaryButtonWidth: buttonWidth,
@@ -439,14 +432,14 @@ class MenuScene extends Phaser.Scene {
       primaryButtonHeight: buttonHeight,
       secondaryButtonHeight: secondaryHeight,
       startX,
-      startY: Math.max(156, Math.round(height * 0.4)),
+      startY,
       gapX,
-      gapY: 12,
-      resetY: height - 44,
+      gapY,
+      resetY: startY + (buttonHeight + gapY) * 3,
       resetButtonWidth: Math.min(320, width - safe * 2),
-      resetButtonHeight: 42,
+      resetButtonHeight,
       footerY: height - 18,
-      footerText: 'Все клавиши и жесты — в "Управлении"',
+      footerText: '',
       footerSize: 12
     };
   }
@@ -471,14 +464,14 @@ class MenuScene extends Phaser.Scene {
         'R — рестарт уровня',
         'Q / E — предыдущий / следующий уровень',
         'T — пересобрать текущий уровень кампании',
-        '1 / Z — буст ICE',
-        '2 / X — буст PWR',
+        '1 / Z — буст ЛЁД',
+        '2 / X — буст СИЛА',
         'Esc — пауза',
         '',
         'Телефон',
         'Диагональный свайп — движение',
         'Кнопка сверху справа — пауза',
-        'Кнопки ICE / PWR снизу — бусты'
+        'Кнопки ЛЁД / СИЛА снизу — бусты'
       ].join('\n'),
       desktopLeftTitle: 'ПК',
       desktopLeftText: [
@@ -486,15 +479,15 @@ class MenuScene extends Phaser.Scene {
         'R — рестарт уровня',
         'Q / E — предыдущий / следующий уровень',
         'T — пересобрать текущий уровень кампании',
-        '1 / Z — буст ICE',
-        '2 / X — буст PWR',
+        '1 / Z — буст ЛЁД',
+        '2 / X — буст СИЛА',
         'Esc — пауза'
       ].join('\n'),
       desktopRightTitle: 'Телефон',
       desktopRightText: [
         'Диагональный свайп — движение',
         'Кнопка сверху справа — пауза',
-        'Кнопки ICE / PWR снизу — бусты'
+        'Кнопки ЛЁД / СИЛА снизу — бусты'
       ].join('\n')
     };
   }
@@ -505,28 +498,28 @@ class MenuScene extends Phaser.Scene {
         'ПК',
         'W / A / S / D или стрелки — движение',
         'R — рестарт уровня',
-        '1 / Z — буст ICE',
-        '2 / X — буст PWR',
+        '1 / Z — буст ЛЁД',
+        '2 / X — буст СИЛА',
         'Esc — пауза',
         '',
         'Телефон',
         'Диагональный свайп — движение',
         'Кнопка сверху справа — пауза',
-        'Кнопки ICE / PWR снизу — бусты'
+        'Кнопки ЛЁД / СИЛА снизу — бусты'
       ].join('\n'),
       desktopLeftTitle: 'ПК',
       desktopLeftText: [
         'W / A / S / D или стрелки — движение',
         'R — рестарт уровня',
-        '1 / Z — буст ICE',
-        '2 / X — буст PWR',
+        '1 / Z — буст ЛЁД',
+        '2 / X — буст СИЛА',
         'Esc — пауза'
       ].join('\n'),
       desktopRightTitle: 'Телефон',
       desktopRightText: [
         'Диагональный свайп — движение',
         'Кнопка сверху справа — пауза',
-        'Кнопки ICE / PWR снизу — бусты'
+        'Кнопки ЛЁД / СИЛА снизу — бусты'
       ].join('\n')
     };
   }
@@ -580,6 +573,7 @@ class MenuScene extends Phaser.Scene {
         shadowBlur: 6
       })
     ).setOrigin(0.5).setDepth(205);
+    this.fitTextToBox(title, panelWidth - 48, 44, 18);
 
     const contentNodes = [];
 
@@ -603,6 +597,7 @@ class MenuScene extends Phaser.Scene {
       ).setOrigin(0, 0).setDepth(205);
       body.setWordWrapWidth(panelWidth - 56, true);
       body.setLineSpacing(profile.isPortrait ? 5 : 6);
+      this.fitTextToBox(body, panelWidth - 56, panelHeight - 166, 10);
       contentNodes.push(body);
     } else {
       const sectionTop = cy - panelHeight / 2 + 94;
@@ -646,6 +641,7 @@ class MenuScene extends Phaser.Scene {
       ).setOrigin(0, 0).setDepth(205);
       leftBody.setWordWrapWidth(columnWidth, true);
       leftBody.setLineSpacing(sectionBodySpacing);
+      this.fitTextToBox(leftBody, columnWidth, panelHeight - 170, 10);
 
       const rightTitle = this.add.text(
         rightX,
@@ -679,6 +675,7 @@ class MenuScene extends Phaser.Scene {
       ).setOrigin(0, 0).setDepth(205);
       rightBody.setWordWrapWidth(columnWidth, true);
       rightBody.setLineSpacing(sectionBodySpacing);
+      this.fitTextToBox(rightBody, columnWidth, panelHeight - 170, 10);
 
       contentNodes.push(leftTitle, leftBody, rightTitle, rightBody);
     }
@@ -735,6 +732,15 @@ class MenuScene extends Phaser.Scene {
         ease: 'Quad.easeOut'
       });
     });
+  }
+
+  fitTextToBox(text, maxWidth, maxHeight, minSize = 10) {
+    window.CubePathLayout?.fitText?.(text, {
+      maxWidth,
+      maxHeight,
+      minSize
+    });
+    return text;
   }
 
   createMenuButton(x, y, w, h, label, onClick, options = {}) {
@@ -798,6 +804,9 @@ class MenuScene extends Phaser.Scene {
         shadowBlur: 5
       })
     ).setOrigin(0.5);
+    text.setAlign('center');
+    text.setWordWrapWidth(Math.max(40, w - 24), true);
+    this.fitTextToBox(text, w - 22, h - 10, small ? 11 : 12);
 
     const setScaleAll = (scale) => {
       bg.setScale(scale);

@@ -157,6 +157,14 @@ window.CubePathI18n = (() => {
   };
 
   Object.assign(staticTranslations, {
+    'Путь Кубика': 'Cube Path',
+    '1 / Z — буст ЛЁД': '1 / Z — ICE boost',
+    '2 / X — буст СИЛА': '2 / X — power boost',
+    'Кнопки ЛЁД / СИЛА снизу — бусты': 'Bottom ICE / power buttons — boosts',
+    'ЛЁД': 'ICE',
+    'СИЛА': 'PWR',
+    'Реклама начнется через': 'Ad starts in',
+    'Сейчас откроется реклама': 'The ad is about to open',
     'Смотреть рекламу\nза 10 кубикоинов': 'Watch an ad\nfor 10 Cubecoins',
     'Реклама\nза 10 кубикоинов': 'Ad\nfor 10 Cubecoins',
     'Смотреть рекламу за случайный буст': 'Watch an ad for a random boost',

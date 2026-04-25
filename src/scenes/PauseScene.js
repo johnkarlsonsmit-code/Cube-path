@@ -42,6 +42,7 @@ class PauseScene extends Phaser.Scene {
         shadowBlur: 8
       })
     ).setOrigin(0.5).setDepth(12004);
+    this.fitTextToBox(title, layout.panelW - 48, 42, 18);
 
     const continueBtn = this.createStyledButton(layout.panelX, layout.buttonY[0], layout.buttonW, layout.buttonH, 'Продолжить', () => {
       this.scene.stop();
@@ -109,14 +110,25 @@ class PauseScene extends Phaser.Scene {
       };
     }
 
-    const panelW = Math.min(w - 34, 460);
-    const panelH = Math.min(h - 34, profile.isPortrait ? 430 : 320);
+    const panelW = Math.min(w - 30, 440);
+    const panelH = Math.min(h - 28, profile.isPortrait ? 400 : 308);
     const panelX = w / 2;
     const panelY = h / 2;
     const panelTop = panelY - panelH / 2;
-    const buttonH = Math.max(44, Math.min(52, Math.round(profile.touchTarget * 0.78)));
-    const gapY = profile.isPortrait ? 14 : 10;
-    const firstButtonY = panelTop + (profile.isPortrait ? 132 : 112);
+    const stack = window.CubePathLayout?.resolveVerticalStack?.({
+      availableHeight: panelH - (profile.isPortrait ? 154 : 128),
+      itemCount: 4,
+      preferredItemHeight: profile.isPortrait ? 50 : 44,
+      minItemHeight: 34,
+      preferredGap: profile.isPortrait ? 14 : 10,
+      minGap: 8
+    }) || {
+      itemHeight: profile.isPortrait ? 44 : 40,
+      gap: 10
+    };
+    const buttonH = Math.round(stack.itemHeight);
+    const gapY = Math.round(stack.gap);
+    const firstButtonY = panelTop + (profile.isPortrait ? 118 : 102);
 
     return {
       panelX,
@@ -124,11 +136,11 @@ class PauseScene extends Phaser.Scene {
       panelTop,
       panelW,
       panelH,
-      titleY: panelTop + (profile.isPortrait ? 58 : 46),
-      titleSize: profile.isPortrait ? 30 : 24,
-      buttonW: Math.min(panelW - 52, profile.isPortrait ? panelW - 64 : 240),
+      titleY: panelTop + (profile.isPortrait ? 48 : 42),
+      titleSize: profile.isPortrait ? 28 : 22,
+      buttonW: Math.min(panelW - 42, profile.isPortrait ? panelW - 52 : 224),
       buttonH,
-      buttonTextSize: profile.isPortrait ? 17 : 15,
+      buttonTextSize: profile.isPortrait ? 15 : 13,
       buttonY: [
         firstButtonY,
         firstButtonY + buttonH + gapY,
@@ -171,6 +183,15 @@ class PauseScene extends Phaser.Scene {
         ease: 'Quad.easeOut'
       });
     });
+  }
+
+  fitTextToBox(text, maxWidth, maxHeight, minSize = 10) {
+    window.CubePathLayout?.fitText?.(text, {
+      maxWidth,
+      maxHeight,
+      minSize
+    });
+    return text;
   }
 
   makeTextStyle({
@@ -300,6 +321,9 @@ class PauseScene extends Phaser.Scene {
         shadowBlur: 4
       })
     ).setOrigin(0.5).setDepth(12007);
+    text.setAlign('center');
+    text.setWordWrapWidth(Math.max(36, w - 18), true);
+    this.fitTextToBox(text, w - 16, h - 8, 10);
 
     const setScaleAll = (scale) => {
       bg.setScale(scale);

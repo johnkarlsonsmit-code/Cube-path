@@ -46,6 +46,7 @@ class SettingsScene extends Phaser.Scene {
         shadowBlur: 8
       })
     ).setOrigin(0.5);
+    this.fitTextToBox(title, layout.panelW - 48, 42, 18);
 
     const subtitle = this.add.text(
       layout.panelX,
@@ -60,6 +61,7 @@ class SettingsScene extends Phaser.Scene {
         shadowBlur: 3
       })
     ).setOrigin(0.5);
+    this.fitTextToBox(subtitle, layout.panelW - 56, 28, 12);
 
     const backBtn = this.createTopButton(
       layout.backButtonX,
@@ -154,8 +156,8 @@ class SettingsScene extends Phaser.Scene {
     }
 
     const safe = profile.safePadding + 6;
-    const panelW = Math.min(w - safe * 2, profile.isPortrait ? 430 : 720);
-    const panelH = Math.min(h - safe * 2, profile.isPortrait ? 660 : 354);
+    const panelW = Math.min(w - safe * 2, profile.isPortrait ? 420 : 720);
+    const panelH = Math.min(h - safe * 2, profile.isPortrait ? 560 : 344);
     const panelX = w / 2;
     const panelY = h / 2;
     const panelTop = panelY - panelH / 2;
@@ -163,10 +165,22 @@ class SettingsScene extends Phaser.Scene {
     const sliderReservedRight = profile.isPortrait ? 62 : 76;
     const sliderWidth = Math.max(150, rowWidth - sliderReservedRight);
     const toggleGap = profile.isPortrait ? 74 : 86;
-    const toggleStart = panelTop + (profile.isPortrait ? 170 : 136);
-    const toggleGapY = profile.isPortrait ? 72 : 54;
-    const sliderStart = panelTop + (profile.isPortrait ? 310 : 228);
-    const sliderGapY = profile.isPortrait ? 82 : 48;
+    const contentTop = panelTop + (profile.isPortrait ? 150 : 122);
+    const contentBottom = panelTop + panelH - (profile.isPortrait ? 34 : 28);
+    const stack = window.CubePathLayout?.resolveVerticalStack?.({
+      availableHeight: Math.max(220, contentBottom - contentTop),
+      itemCount: 5,
+      preferredItemHeight: profile.isPortrait ? 58 : 50,
+      minItemHeight: profile.isPortrait ? 46 : 40,
+      preferredGap: profile.isPortrait ? 18 : 12,
+      minGap: 8
+    }) || {
+      itemHeight: profile.isPortrait ? 52 : 46,
+      gap: profile.isPortrait ? 14 : 10
+    };
+    const rowStep = stack.itemHeight + stack.gap;
+    const toggleStart = contentTop + stack.itemHeight * 0.45;
+    const sliderStart = toggleStart + rowStep * 2 + (profile.isPortrait ? 8 : 4);
 
     return {
       panelX,
@@ -174,24 +188,24 @@ class SettingsScene extends Phaser.Scene {
       panelTop,
       panelW,
       panelH,
-      titleY: panelTop + (profile.isPortrait ? 56 : 42),
-      titleSize: profile.isPortrait ? 34 : 28,
-      subtitleY: panelTop + (profile.isPortrait ? 92 : 74),
-      subtitleSize: profile.isPortrait ? 18 : 16,
-      backButtonX: panelX - panelW / 2 + (profile.isPortrait ? 82 : 72),
-      backButtonY: panelTop + (profile.isPortrait ? 138 : 104),
-      backButtonW: profile.isPortrait ? 144 : 132,
-      backButtonH: Math.max(42, Math.min(50, Math.round(profile.touchTarget * 0.8))),
+      titleY: panelTop + (profile.isPortrait ? 48 : 40),
+      titleSize: profile.isPortrait ? 30 : 26,
+      subtitleY: panelTop + (profile.isPortrait ? 82 : 68),
+      subtitleSize: profile.isPortrait ? 16 : 15,
+      backButtonX: panelX - panelW / 2 + (profile.isPortrait ? 70 : 66),
+      backButtonY: panelTop + (profile.isPortrait ? 114 : 98),
+      backButtonW: profile.isPortrait ? 120 : 124,
+      backButtonH: Math.max(38, Math.min(46, Math.round(profile.touchTarget * 0.74))),
       rowWidth,
-      toggleButtonW: profile.isPortrait ? 104 : 96,
-      toggleButtonH: Math.max(38, Math.min(44, Math.round(profile.touchTarget * 0.7))),
+      toggleButtonW: profile.isPortrait ? 98 : 94,
+      toggleButtonH: Math.max(34, Math.min(42, Math.round(profile.touchTarget * 0.66))),
       sliderWidth,
-      toggleRowY: [toggleStart, toggleStart + toggleGapY],
-      sliderRowY: [sliderStart, sliderStart + sliderGapY, sliderStart + sliderGapY * 2],
-      labelSize: profile.isPortrait ? 20 : 18,
-      valueSize: profile.isPortrait ? 17 : 15,
-      sliderLabelSize: profile.isPortrait ? 18 : 16,
-      sliderValueSize: profile.isPortrait ? 15 : 13,
+      toggleRowY: [toggleStart, toggleStart + rowStep],
+      sliderRowY: [sliderStart, sliderStart + rowStep, sliderStart + rowStep * 2],
+      labelSize: profile.isPortrait ? 18 : 17,
+      valueSize: profile.isPortrait ? 15 : 14,
+      sliderLabelSize: profile.isPortrait ? 16 : 15,
+      sliderValueSize: profile.isPortrait ? 14 : 13,
       toggleGap
     };
   }
@@ -350,6 +364,7 @@ class SettingsScene extends Phaser.Scene {
         align: 'left'
       })
     ).setOrigin(0, 0.5);
+    this.fitTextToBox(labelText, rowWidth - layout.toggleButtonW - layout.toggleGap - 26, 24, 11);
 
     const valueText = this.add.text(
       valueX,
@@ -401,7 +416,7 @@ class SettingsScene extends Phaser.Scene {
       }
 
       if (buttonRef?.text) {
-        buttonRef.text.setText(initialValue ? 'ON' : 'OFF');
+        buttonRef.text.setText(initialValue ? 'ВКЛ' : 'ВЫКЛ');
       }
 
       valueText.setText(initialValue ? 'ВКЛ' : 'ВЫКЛ');
@@ -413,7 +428,7 @@ class SettingsScene extends Phaser.Scene {
       y,
       layout.toggleButtonW,
       layout.toggleButtonH,
-      initialValue ? 'ON' : 'OFF',
+      initialValue ? 'ВКЛ' : 'ВЫКЛ',
       () => {
         initialValue = !initialValue;
         refreshButton();
@@ -446,6 +461,7 @@ class SettingsScene extends Phaser.Scene {
         align: 'left'
       })
     ).setOrigin(0, 0.5);
+    this.fitTextToBox(labelText, rowWidth - 42, 26, 11);
 
     const valueText = this.add.text(
       valueX,
@@ -515,6 +531,9 @@ class SettingsScene extends Phaser.Scene {
         shadowBlur: 4
       })
     ).setOrigin(0.5);
+    text.setAlign('center');
+    text.setWordWrapWidth(Math.max(36, w - 18), true);
+    this.fitTextToBox(text, w - 16, h - 8, 11);
 
     const setScaleAll = (scale) => {
       bg.setScale(scale);
@@ -574,6 +593,8 @@ class SettingsScene extends Phaser.Scene {
         shadowBlur: 3
       })
     ).setOrigin(0.5);
+    text.setAlign('center');
+    this.fitTextToBox(text, w - 12, h - 8, 10);
 
     const setScaleAll = (scale) => {
       bg.setScale(scale);
@@ -650,6 +671,15 @@ class SettingsScene extends Phaser.Scene {
         fill: false
       }
     };
+  }
+
+  fitTextToBox(text, maxWidth, maxHeight, minSize = 10) {
+    window.CubePathLayout?.fitText?.(text, {
+      maxWidth,
+      maxHeight,
+      minSize
+    });
+    return text;
   }
 
   createRoundedRect(x, y, w, h, radius, fillColor, fillAlpha = 1, strokeColor = null, strokeAlpha = 1, strokeWidth = 0) {
