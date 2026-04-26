@@ -833,10 +833,10 @@ class GameScene extends Phaser.Scene {
     if (this.adInProgress) return;
 
     this.setAdPauseState(true);
+    CubePathAudio.pauseMusicForAd(this);
 
     CubePathAds.showRewarded({
       onOpen: () => {
-        CubePathAudio.pauseMusicForAd(this);
         this.showAdHint?.('Реклама загружается...');
       },
       onReward: () => {
@@ -868,10 +868,10 @@ class GameScene extends Phaser.Scene {
     if (this.adInProgress) return;
 
     this.setAdPauseState(true);
+    CubePathAudio.pauseMusicForAd(this);
 
     CubePathAds.showRewarded({
       onOpen: () => {
-        CubePathAudio.pauseMusicForAd(this);
         this.showAdHint?.('Реклама загружается...');
       },
       onReward: () => {
@@ -906,10 +906,10 @@ class GameScene extends Phaser.Scene {
     }
 
     this.setAdPauseState(true);
+    CubePathAudio.pauseMusicForAd(this);
 
     CubePathAds.showInterstitial({
       onOpen: () => {
-        CubePathAudio.pauseMusicForAd(this);
         this.showAdHint?.('Показ рекламы...');
       },
       onClose: () => {
