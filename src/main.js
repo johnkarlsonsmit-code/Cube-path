@@ -35,9 +35,33 @@ const bindBrowserInteractionGuards = () => {
     event.preventDefault();
   };
 
-  window.addEventListener('contextmenu', preventBrowserUi, { capture: true });
-  window.addEventListener('selectstart', preventBrowserUi, { capture: true });
-  window.addEventListener('dragstart', preventBrowserUi, { capture: true });
+  const preventNonPrimaryPointer = (event) => {
+    if (isEditableTarget(event.target)) return;
+    if (typeof event.button === 'number' && event.button <= 0) return;
+    event.preventDefault();
+  };
+
+  const guardedTargets = [window, document, document.documentElement, document.body].filter(Boolean);
+  const passiveFalse = { capture: true, passive: false };
+
+  guardedTargets.forEach((target) => {
+    target.addEventListener('contextmenu', preventBrowserUi, passiveFalse);
+    target.addEventListener('selectstart', preventBrowserUi, passiveFalse);
+    target.addEventListener('dragstart', preventBrowserUi, passiveFalse);
+    target.addEventListener('auxclick', preventBrowserUi, passiveFalse);
+    target.addEventListener('gesturestart', preventBrowserUi, passiveFalse);
+    target.addEventListener('gesturechange', preventBrowserUi, passiveFalse);
+    target.addEventListener('gestureend', preventBrowserUi, passiveFalse);
+    target.addEventListener('pointerdown', preventNonPrimaryPointer, passiveFalse);
+    target.addEventListener('mousedown', preventNonPrimaryPointer, passiveFalse);
+  });
+
+  document.addEventListener('selectionchange', () => {
+    const selection = window.getSelection?.();
+    if (!selection || selection.isCollapsed) return;
+    if (isEditableTarget(document.activeElement)) return;
+    selection.removeAllRanges();
+  });
 };
 
 const getSceneResizeKey = (scene) => `${scene?.scale?.width ?? 0}x${scene?.scale?.height ?? 0}`;
@@ -95,6 +119,9 @@ const bindViewportListeners = (game, isMobileGame) => {
   window.addEventListener('resize', queueViewportSync, { passive: true });
   window.addEventListener('orientationchange', queueViewportSync, { passive: true });
   window.addEventListener('pageshow', queueViewportSync, { passive: true });
+  window.addEventListener('load', queueViewportSync, { passive: true });
+  window.addEventListener('focus', queueViewportSync, { passive: true });
+  document.addEventListener('visibilitychange', queueViewportSync, { passive: true });
   document.addEventListener('fullscreenchange', queueViewportSync);
   viewportTarget?.addEventListener?.('resize', queueViewportSync, { passive: true });
 
@@ -106,6 +133,32 @@ const bindViewportListeners = (game, isMobileGame) => {
   window.setTimeout(queueViewportSync, 0);
   window.setTimeout(queueViewportSync, 120);
   window.setTimeout(queueViewportSync, 320);
+  window.setTimeout(queueViewportSync, 700);
+  window.setTimeout(queueViewportSync, 1200);
+  window.setTimeout(queueViewportSync, 2000);
+};
+
+const bindCanvasGuards = (game) => {
+  const canvas = game?.canvas;
+  if (!canvas || canvas.__cubePathCanvasGuardsBound) return;
+
+  canvas.__cubePathCanvasGuardsBound = true;
+  canvas.setAttribute('oncontextmenu', 'return false;');
+  canvas.addEventListener('contextmenu', (event) => event.preventDefault(), { capture: true });
+  canvas.addEventListener('dragstart', (event) => event.preventDefault(), { capture: true });
+};
+
+const waitWithTimeout = (promise, timeoutMs, fallbackValue) => {
+  let timer = null;
+
+  return Promise.race([
+    Promise.resolve(promise).catch(() => fallbackValue),
+    new Promise((resolve) => {
+      timer = window.setTimeout(() => resolve(fallbackValue), timeoutMs);
+    })
+  ]).finally(() => {
+    if (timer) window.clearTimeout(timer);
+  });
 };
 
 const bindFullscreenHotkey = (game, isMobileGame) => {
@@ -156,7 +209,7 @@ const createGameConfig = (startupProfile) => {
   bindBrowserInteractionGuards();
 
   window.CubePathI18n?.patchPhaser?.(Phaser);
-  await window.CubePathI18n?.init?.();
+  await waitWithTimeout(window.CubePathI18n?.init?.(), 1200, 'ru');
   syncDocumentTitle();
 
   const startupProfile = window.CubePathDevice?.getStartupProfile?.() || { isMobile: false };
@@ -164,6 +217,7 @@ const createGameConfig = (startupProfile) => {
   const game = new Phaser.Game(config);
 
   window.CubePathGame = game;
+  bindCanvasGuards(game);
 
   if (window.CubePathAds) {
     window.CubePathAds.setGameInstance?.(game);

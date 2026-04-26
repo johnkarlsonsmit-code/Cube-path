@@ -365,7 +365,7 @@ class SettingsScene extends Phaser.Scene {
     const left = x - rowWidth / 2;
     const buttonX = x + rowWidth / 2 - layout.toggleButtonW / 2;
     const valueX = buttonX - layout.toggleGap;
-    const labelWidth = Math.max(96, rowWidth - layout.toggleButtonW - layout.toggleGap - 22);
+    const labelWidth = Math.max(110, rowWidth - layout.toggleButtonW - 24);
     const compactRow = !!layout.isTightLandscape;
 
     const labelText = this.add.text(
@@ -397,6 +397,8 @@ class SettingsScene extends Phaser.Scene {
         shadowBlur: 2
       })
     ).setOrigin(0.5);
+
+    valueText.setVisible(false);
 
     let buttonRef = null;
 
