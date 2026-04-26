@@ -285,22 +285,18 @@ window.CubePathI18n = (() => {
   }
 
   async function init() {
-    setLanguage(window.navigator?.language || fallbackLanguage);
+    setLanguage(fallbackLanguage);
 
     if (!window.CubePathAds?.init) {
       return currentLanguage;
     }
 
     try {
-      const ysdk = await window.CubePathAds.init();
-      const sdkLanguage = ysdk?.environment?.i18n?.lang || ysdk?.environment?.lang;
-
-      if (sdkLanguage) {
-        setLanguage(sdkLanguage);
-      }
+      await window.CubePathAds.init();
     } catch (_error) {
     }
 
+    setLanguage(fallbackLanguage);
     return currentLanguage;
   }
 
