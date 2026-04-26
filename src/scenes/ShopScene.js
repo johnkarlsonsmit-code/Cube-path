@@ -233,12 +233,16 @@ class ShopScene extends Phaser.Scene {
             catalogCardH: profile.isPortrait ? (isCompactPortrait ? 164 : 174) : (isCompactLandscape ? 138 : 160),
             catalogGapX: profile.isPortrait ? 0 : 18,
             catalogGapY: profile.isPortrait ? (isCompactPortrait ? 14 : 18) : 16,
-            cosmeticStartY: 28,
+            cosmeticStartY: (profile.isPortrait
+                ? (isCompactPortrait ? 164 : 174)
+                : (isCompactLandscape ? 138 : 160)) / 2 + (isCompactLandscape ? 8 : 12),
             boostColumns: profile.isPortrait ? 1 : 2,
             boostCardW: profile.isPortrait ? scrollW - 18 : Math.min(Math.floor((scrollW - 16) / 2), 300),
             boostCardH: profile.isPortrait ? (isCompactPortrait ? 198 : 210) : (isCompactLandscape ? 168 : 192),
             boostGapX: 16,
-            boostStartY: 18,
+            boostStartY: (profile.isPortrait
+                ? (isCompactPortrait ? 198 : 210)
+                : (isCompactLandscape ? 168 : 192)) / 2 + (isCompactLandscape ? 8 : 12),
             boostButtonW: profile.isPortrait ? Math.min(scrollW - 56, 208) : 176,
             boostButtonH: profile.isPortrait ? 44 : (isCompactLandscape ? 36 : 42),
             hintY: 18,
@@ -1335,7 +1339,7 @@ class ShopScene extends Phaser.Scene {
 
             const columns = this.layout.boostColumns;
             const gapX = this.layout.boostGapX;
-            const gapY = 22;
+            const gapY = this.profile.isPortrait ? 18 : 16;
             const cardW = this.layout.boostCardW;
             const cardH = this.layout.boostCardH;
             const { startX } = this.getContentGridLayout(columns, cardW, gapX, 10);
@@ -1392,7 +1396,7 @@ class ShopScene extends Phaser.Scene {
             });
 
             const rows = Math.ceil(items.length / columns);
-            return this.layout.boostStartY + rows * (cardH + gapY);
+            return this.layout.boostStartY + (rows - 1) * (cardH + gapY) + cardH / 2 + gapY;
         }
 
         this.createMainCard(245, 168, 420, 255, 'blue');

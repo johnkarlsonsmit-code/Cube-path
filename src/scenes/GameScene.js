@@ -5290,10 +5290,15 @@ class GameScene extends Phaser.Scene {
       const pairWidth = Math.max(106, Math.floor((panel.panelWidth - 44 - pairGap) / 2));
       const pairOffset = pairWidth / 2 + pairGap / 2;
       const isTightLandscape = !profile.isPortrait && panel.panelHeight <= 340;
+      const compactReward = isTightLandscape || (!profile.isPortrait && panel.panelHeight <= 390);
       const firstRowY = bottom - (profile.isPortrait ? 112 : (isTightLandscape ? 78 : 98));
       const menuRowY = bottom - (profile.isPortrait ? 70 : (isTightLandscape ? 32 : 58));
       const adRowY = bottom - (profile.isPortrait ? 28 : (isTightLandscape ? 32 : 18));
-      const rewardIconX = cx - Math.min(profile.isPortrait ? 76 : 54, panel.panelWidth * 0.22);
+      const rewardIconX = compactReward
+        ? cx + panel.panelWidth * 0.18
+        : cx - Math.min(profile.isPortrait ? 76 : 54, panel.panelWidth * 0.22);
+      const rewardTextOffset = compactReward ? 34 : 52;
+      const rewardScale = compactReward ? 0.48 : (profile.isPortrait ? 0.72 : 0.78);
 
       panel.titleText.setY(top + (profile.isPortrait ? 42 : (isTightLandscape ? 30 : 38)));
 
@@ -5318,7 +5323,7 @@ class GameScene extends Phaser.Scene {
         'blue',
         {
           textSize: profile.isPortrait ? 15 : 16,
-          maxWidth: metricWidth,
+          maxWidth: compactReward ? Math.min(metricWidth, panel.panelWidth * 0.34) : metricWidth,
           maxHeight: 22,
           iconSize: profile.isPortrait ? 19 : 21
         }
@@ -5332,24 +5337,26 @@ class GameScene extends Phaser.Scene {
         'gold',
         {
           textSize: profile.isPortrait ? 15 : 16,
-          maxWidth: metricWidth,
+          maxWidth: compactReward ? Math.min(metricWidth, panel.panelWidth * 0.34) : metricWidth,
           maxHeight: 22,
           shardScale: profile.isPortrait ? 0.56 : 0.62
         }
       );
 
-      const rewardY = top + (profile.isPortrait ? 238 : (isTightLandscape ? 178 : 220));
+      const rewardY = compactReward
+        ? top + (isTightLandscape ? 145 : 170)
+        : top + (profile.isPortrait ? 238 : 220);
       const rewardCube = this.createRewardCubeIcon(
         rewardIconX,
         rewardY,
-        profile.isPortrait ? 0.72 : 0.78
+        rewardScale
       );
       const rewardText = this.add.text(
-        rewardIconX + 52,
-        rewardY + 6,
+        rewardIconX + rewardTextOffset,
+        rewardY + (compactReward ? 2 : 6),
         `+${gainedCubeCoins}`,
         this.makeUiTextStyle({
-          size: profile.isPortrait ? 20 : 23,
+          size: compactReward ? 17 : (profile.isPortrait ? 20 : 23),
           color: '#ffd54a',
           stroke: '#c98b11',
           strokeThickness: 2,
