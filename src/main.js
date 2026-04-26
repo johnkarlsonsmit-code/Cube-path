@@ -85,6 +85,7 @@ const notifyScenesAboutResize = (game, force = false) => {
 
   scenes.forEach((scene) => {
     if (!scene?.sys?.settings) return;
+    if (!scene.sys.settings.active) return;
 
     const nextKey = getSceneResizeKey(scene);
     const forceScene = force && scene.sys.settings.key === 'GameScene';

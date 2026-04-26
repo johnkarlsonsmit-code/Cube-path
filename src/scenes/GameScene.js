@@ -1734,6 +1734,7 @@ class GameScene extends Phaser.Scene {
   createStyledUiButton(x, y, w, h, label, onClick, options = {}) {
     const theme = options.theme || 'blue';
     const textSize = options.textSize || 16;
+    const baseDepth = Number.isFinite(options.depth) ? options.depth : 12003;
     const profile = this.deviceProfile || window.CubePathDevice?.getProfile?.(this) || { isMobile: false, touchTarget: 48 };
     const isMultiline = String(label).includes('\n');
 
@@ -1778,10 +1779,10 @@ class GameScene extends Phaser.Scene {
 
     const c = themes[theme] || themes.blue;
 
-    const shadow = this.createUiRoundedRect(x, y + 4, w, h, 14, c.shadow, 0.14, null, 0, 0, 12003);
-    const bg = this.createUiRoundedRect(x, y, w, h, 14, c.base, 0.96, c.stroke, 0.9, 2, 12004);
-    const inner = this.createUiRoundedRect(x, y, w - 8, h - 8, 11, 0xffffff, 0.05, 0xffffff, 0.14, 1, 12005);
-    const gloss = this.createUiRoundedRect(x, y - 8, w - 10, h / 2 - 6, 10, 0xffffff, 0.14, null, 0, 0, 12005);
+    const shadow = this.createUiRoundedRect(x, y + 4, w, h, 14, c.shadow, 0.14, null, 0, 0, baseDepth);
+    const bg = this.createUiRoundedRect(x, y, w, h, 14, c.base, 0.96, c.stroke, 0.9, 2, baseDepth + 1);
+    const inner = this.createUiRoundedRect(x, y, w - 8, h - 8, 11, 0xffffff, 0.05, 0xffffff, 0.14, 1, baseDepth + 2);
+    const gloss = this.createUiRoundedRect(x, y - 8, w - 10, h / 2 - 6, 10, 0xffffff, 0.14, null, 0, 0, baseDepth + 2);
 
     const hit = this.add.rectangle(
       x,
@@ -1793,7 +1794,7 @@ class GameScene extends Phaser.Scene {
     )
       .setInteractive({ useHandCursor: !profile.isMobile })
       .setScrollFactor(0)
-      .setDepth(12006);
+      .setDepth(baseDepth + 3);
 
     const text = this.add.text(
       x,
@@ -1807,7 +1808,7 @@ class GameScene extends Phaser.Scene {
         shadowColor: c.textStroke,
         shadowBlur: 3
       })
-    ).setOrigin(0.5).setScrollFactor(0).setDepth(12007);
+    ).setOrigin(0.5).setScrollFactor(0).setDepth(baseDepth + 4);
     text.setAlign('center');
     if (isMultiline) {
       text.setLineSpacing(-2);
@@ -2485,7 +2486,7 @@ class GameScene extends Phaser.Scene {
       () => {
         this.openPauseScene();
       },
-      { textSize: 15, theme: 'blue' }
+      { textSize: 15, theme: 'blue', depth: 5000 }
     );
     this.registerUiHitBox(layout.pauseX, layout.pauseY, layout.pauseW, layout.pauseH, 6);
     this.soundButtonText = null;
@@ -2712,7 +2713,7 @@ class GameScene extends Phaser.Scene {
       () => {
         this.openPauseScene();
       },
-      { textSize: profile.isPortrait ? 15 : 14, theme: 'blue' }
+      { textSize: profile.isPortrait ? 15 : 14, theme: 'blue', depth: 5000 }
     );
     this.registerUiHitBox(layout.pauseX, layout.pauseY, layout.pauseW, layout.pauseH, 6);
     this.soundButtonText = null;
