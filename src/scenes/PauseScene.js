@@ -111,12 +111,15 @@ class PauseScene extends Phaser.Scene {
     }
 
     const panelW = Math.min(w - 30, 440);
-    const panelH = Math.min(h - 28, profile.isPortrait ? 400 : 308);
+    const panelH = Math.min(h - 28, profile.isPortrait ? 400 : 320);
     const panelX = w / 2;
     const panelY = h / 2;
     const panelTop = panelY - panelH / 2;
+    const headerBottom = panelTop + (profile.isPortrait ? 106 : 94);
+    const footerPadding = profile.isPortrait ? 24 : 20;
+    const contentBottom = panelTop + panelH - footerPadding;
     const stack = window.CubePathLayout?.resolveVerticalStack?.({
-      availableHeight: panelH - (profile.isPortrait ? 154 : 128),
+      availableHeight: Math.max(156, contentBottom - headerBottom),
       itemCount: 4,
       preferredItemHeight: profile.isPortrait ? 50 : 44,
       minItemHeight: 34,
@@ -128,7 +131,8 @@ class PauseScene extends Phaser.Scene {
     };
     const buttonH = Math.round(stack.itemHeight);
     const gapY = Math.round(stack.gap);
-    const firstButtonY = panelTop + (profile.isPortrait ? 118 : 102);
+    const totalButtonsHeight = buttonH * 4 + gapY * 3;
+    const firstButtonY = headerBottom + Math.max(0, (contentBottom - headerBottom - totalButtonsHeight) / 2) + buttonH / 2;
 
     return {
       panelX,
@@ -136,7 +140,7 @@ class PauseScene extends Phaser.Scene {
       panelTop,
       panelW,
       panelH,
-      titleY: panelTop + (profile.isPortrait ? 48 : 42),
+      titleY: panelTop + (profile.isPortrait ? 46 : 42),
       titleSize: profile.isPortrait ? 28 : 22,
       buttonW: Math.min(panelW - 42, profile.isPortrait ? panelW - 52 : 224),
       buttonH,

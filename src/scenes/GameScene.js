@@ -1185,7 +1185,7 @@ class GameScene extends Phaser.Scene {
         ? (profile.isPortrait ? Math.min(this.scale.width - 28, 360) : Math.min(this.scale.width - 48, 500))
         : 660,
       height: isMobileOverlay
-        ? (profile.isPortrait ? 360 : 312)
+        ? (profile.isPortrait ? 388 : 320)
         : 360,
       title: 'Основная кампания завершена',
       titleColor: '#ffffff',
@@ -1878,8 +1878,10 @@ class GameScene extends Phaser.Scene {
     return [shadow, bg, inner, gloss, hit, text];
   }
 
-  createStarRow(cx, y, filledStars) {
+  createStarRow(cx, y, filledStars, options = {}) {
     const nodes = [];
+    const scale = Number.isFinite(options.scale) ? options.scale : 1;
+    const spacing = Number.isFinite(options.spacing) ? options.spacing : 88 * scale;
 
     const drawSoftStar = (x, y, scale, filled) => {
       const g = this.add.graphics().setScrollFactor(0).setDepth(12006);
@@ -1928,14 +1930,14 @@ class GameScene extends Phaser.Scene {
     };
 
     for (let i = 0; i < 3; i++) {
-      const x = cx - 88 + i * 88;
+      const x = cx - spacing + i * spacing;
       const filled = i < filledStars;
-      nodes.push(drawSoftStar(x, y, 1, filled));
+      nodes.push(drawSoftStar(x, y, scale, filled));
     }
 
     return nodes;
   }
-  createMetricRow(cx, y, icon, text, theme = 'blue') {
+  createMetricRow(cx, y, icon, text, theme = 'blue', options = {}) {
     const palettes = {
       blue: {
         fill: 0xeaf6ff,
@@ -1955,13 +1957,21 @@ class GameScene extends Phaser.Scene {
 
     const p = palettes[theme] || palettes.blue;
     const nodes = [];
+    const textSize = Number.isFinite(options.textSize) ? options.textSize : 17;
+    const iconSize = Number.isFinite(options.iconSize) ? options.iconSize : 21;
+    const maxWidth = Number.isFinite(options.maxWidth) ? options.maxWidth : 180;
+    const maxHeight = Number.isFinite(options.maxHeight) ? options.maxHeight : 26;
+    const minSize = Number.isFinite(options.minSize) ? options.minSize : 10;
+    const labelOffsetX = Number.isFinite(options.labelOffsetX) ? options.labelOffsetX : 8;
+    const iconOffsetX = Number.isFinite(options.iconOffsetX) ? options.iconOffsetX : -12;
+    const shardScale = Number.isFinite(options.shardScale) ? options.shardScale : 0.62;
 
     const label = this.add.text(
-      cx + 8,
+      cx + labelOffsetX,
       y,
       text,
       this.makeUiTextStyle({
-        size: 17,
+        size: textSize,
         color: p.text,
         stroke: p.textStroke,
         strokeThickness: 1,
@@ -1970,16 +1980,17 @@ class GameScene extends Phaser.Scene {
         align: 'left'
       })
     ).setOrigin(0, 0.5).setScrollFactor(0).setDepth(12005);
+    this.fitTextToBox(label, maxWidth, maxHeight, minSize);
 
     nodes.push(label);
 
     if (icon === '⌛') {
       const iconText = this.add.text(
-        cx - 12,
+        cx + iconOffsetX,
         y,
         '⌛',
         this.makeUiTextStyle({
-          size: 21,
+          size: iconSize,
           color: p.icon,
           stroke: '#ffffff',
           strokeThickness: 1,
@@ -1992,9 +2003,9 @@ class GameScene extends Phaser.Scene {
     } else if (icon === 'STAR_HALF') {
       const g = this.add.graphics().setScrollFactor(0).setDepth(12005);
 
-      const x = cx - 8;
+      const x = cx + iconOffsetX + 4;
       const yy = y;
-      const s = 0.62;
+      const s = shardScale;
 
       // внешний контур "осколка звезды"
       const outer = [
@@ -2404,7 +2415,8 @@ class GameScene extends Phaser.Scene {
     const timeSize = profile.isMobile ? (profile.isPortrait ? 13 : 14) : 15;
     const titleY = cardY - (profile.isMobile ? 18 : 20);
     const timeY = cardY + (profile.isMobile ? 12 : 13);
-    const textX = cardX - cardW / 2 + 20;
+    const textX = cardX - cardW / 2 + (profile.isMobile ? 18 : 20);
+    const textWidth = Math.max(110, cardW - (profile.isMobile ? 34 : 40));
 
     this.createUiRoundedRect(cardX, cardY + 4, cardW, cardH, 18, 0x4e7ead, 0.16, null, 0, 0, 5000);
     this.createUiRoundedRect(cardX, cardY, cardW, cardH, 18, 0x2f78bd, 0.92, 0xe8f8ff, 0.9, 2, 5001);
@@ -2426,6 +2438,7 @@ class GameScene extends Phaser.Scene {
         align: 'left'
       })
     ).setOrigin(0, 0.5).setDepth(5004).setScrollFactor(0);
+    this.fitTextToBox(this.levelLabel, textWidth, 22, 10);
 
     this.timeLabel = this.add.text(
       textX,
@@ -2441,6 +2454,7 @@ class GameScene extends Phaser.Scene {
         align: 'left'
       })
     ).setOrigin(0, 0.5).setDepth(5004).setScrollFactor(0);
+    this.fitTextToBox(this.timeLabel, textWidth, 22, 10);
 
     this.registerUiHitBox(cardX, cardY, cardW, cardH, 6);
   }
@@ -4223,7 +4237,7 @@ class GameScene extends Phaser.Scene {
         ? (profile.isPortrait ? Math.min(this.scale.width - 28, 360) : Math.min(this.scale.width - 48, 500))
         : 580,
       height: isMobileOverlay
-        ? (profile.isPortrait ? 360 : 324)
+        ? (profile.isPortrait ? 388 : 332)
         : 340,
       title: this.gameMode === 'tutorial' ? 'Обучение пройдено!' : 'Кампания пройдена!',
       titleColor: '#ffffff',
@@ -4326,7 +4340,7 @@ class GameScene extends Phaser.Scene {
         ? (profile.isPortrait ? Math.min(this.scale.width - 24, 360) : Math.min(this.scale.width - 48, 520))
         : 610,
       height: isMobileResult
-        ? (profile.isPortrait ? 470 : 372)
+        ? (profile.isPortrait ? 486 : 388)
         : (this.gameMode === 'campaign' ? 540 : 485),
       title: 'Уровень пройден!',
       titleColor: '#ffffff',
@@ -4371,7 +4385,7 @@ class GameScene extends Phaser.Scene {
         'gold'
       );
 
-      const rewardY = top + (profile.isPortrait ? 226 : 216);
+      const rewardY = top + (profile.isPortrait ? 238 : 220);
       const rewardCubeAdaptive = this.createRewardCubeIcon(
         cx - (profile.isPortrait ? 78 : 54),
         rewardY,
@@ -5264,18 +5278,28 @@ class GameScene extends Phaser.Scene {
     if (isMobileResult) {
       const top = cy - panel.panelHeight / 2;
       const bottom = cy + panel.panelHeight / 2;
-      const metricX = cx - (profile.isPortrait ? 80 : 86);
+      const metricX = cx - Math.min(profile.isPortrait ? 82 : 88, panel.panelWidth * 0.24);
+      const metricWidth = Math.max(100, panel.panelWidth - (profile.isPortrait ? 146 : 168));
+      const starScale = profile.isPortrait
+        ? Phaser.Math.Clamp((panel.panelWidth - 56) / 300, 0.72, 0.92)
+        : Phaser.Math.Clamp((panel.panelWidth - 72) / 320, 0.76, 0.96);
+      const starSpacing = profile.isPortrait
+        ? Phaser.Math.Clamp((panel.panelWidth - 58) / 3, 60, 76)
+        : Phaser.Math.Clamp((panel.panelWidth - 86) / 3, 68, 82);
       const pairGap = profile.isPortrait ? 14 : 16;
       const pairWidth = Math.max(106, Math.floor((panel.panelWidth - 44 - pairGap) / 2));
       const pairOffset = pairWidth / 2 + pairGap / 2;
       const firstRowY = bottom - (profile.isPortrait ? 112 : 98);
       const menuRowY = bottom - (profile.isPortrait ? 70 : 58);
       const adRowY = bottom - (profile.isPortrait ? 28 : 18);
-      const rewardIconX = cx - (profile.isPortrait ? 78 : 54);
+      const rewardIconX = cx - Math.min(profile.isPortrait ? 76 : 54, panel.panelWidth * 0.22);
 
       panel.titleText.setY(top + (profile.isPortrait ? 42 : 38));
 
-      const starNodes = this.createStarRow(cx, top + (profile.isPortrait ? 96 : 86), result.stars);
+      const starNodes = this.createStarRow(cx, top + (profile.isPortrait ? 98 : 88), result.stars, {
+        scale: starScale,
+        spacing: starSpacing
+      });
       const divider = this.add.rectangle(
         cx,
         top + (profile.isPortrait ? 144 : 128),
@@ -5290,7 +5314,13 @@ class GameScene extends Phaser.Scene {
         top + (profile.isPortrait ? 174 : 158),
         '\u231B',
         `${result.timeSeconds.toFixed(1)}\u0441 / ${result.parTime.toFixed(1)}\u0441`,
-        'blue'
+        'blue',
+        {
+          textSize: profile.isPortrait ? 15 : 16,
+          maxWidth: metricWidth,
+          maxHeight: 22,
+          iconSize: profile.isPortrait ? 19 : 21
+        }
       );
 
       const coinNodes = this.createMetricRow(
@@ -5298,10 +5328,16 @@ class GameScene extends Phaser.Scene {
         top + (profile.isPortrait ? 206 : 192),
         'STAR_HALF',
         `${this.coinsCollected}/${this.coinsTotal}`,
-        'gold'
+        'gold',
+        {
+          textSize: profile.isPortrait ? 15 : 16,
+          maxWidth: metricWidth,
+          maxHeight: 22,
+          shardScale: profile.isPortrait ? 0.56 : 0.62
+        }
       );
 
-      const rewardY = top + (profile.isPortrait ? 226 : 216);
+      const rewardY = top + (profile.isPortrait ? 238 : 220);
       const rewardCube = this.createRewardCubeIcon(
         rewardIconX,
         rewardY,
@@ -5403,7 +5439,10 @@ class GameScene extends Phaser.Scene {
 
     panel.titleText.setY(cy - 154);
 
-    const starNodes = this.createStarRow(cx, cy - 74, result.stars);
+    const starNodes = this.createStarRow(cx, cy - 74, result.stars, {
+      scale: 1,
+      spacing: 88
+    });
     const divider1 = this.add.rectangle(cx, cy - 6, 380, 2, 0xffffff, 0.18)
       .setScrollFactor(0).setDepth(12004);
     const divider2 = this.add.rectangle(cx, cy + 58, 380, 2, 0xffffff, 0.18)
@@ -5414,7 +5453,8 @@ class GameScene extends Phaser.Scene {
       cy + 24,
       '\u231B',
       `${result.timeSeconds.toFixed(1)}\u0441 / ${result.parTime.toFixed(1)}\u0441`,
-      'blue'
+      'blue',
+      { maxWidth: 150, maxHeight: 24 }
     );
 
     const coinNodes = this.createMetricRow(
@@ -5422,7 +5462,8 @@ class GameScene extends Phaser.Scene {
       cy + 24,
       'STAR_HALF',
       `${this.coinsCollected}/${this.coinsTotal}`,
-      'gold'
+      'gold',
+      { maxWidth: 106, maxHeight: 24 }
     );
 
     const rewardCube = this.createRewardCubeIcon(cx - 30, cy + 98, 0.92);
@@ -5531,7 +5572,7 @@ class GameScene extends Phaser.Scene {
         ? (profile.isPortrait ? Math.min(this.scale.width - 28, 360) : Math.min(this.scale.width - 48, 480))
         : 520,
       height: isMobileOverlay
-        ? (profile.isPortrait ? 384 : 308)
+        ? (profile.isPortrait ? 412 : 316)
         : 300,
       title: '\u0422\u044b \u043f\u0440\u043e\u0438\u0433\u0440\u0430\u043b',
       titleColor: '#ffffff',
@@ -5609,8 +5650,8 @@ class GameScene extends Phaser.Scene {
 
       menuBtn = this.createStyledUiButton(
         cx,
-        bottom - 40,
-        Math.min(panel.panelWidth - 92, 188),
+        bottom - 38,
+        buttonW,
         34,
         '\u0412 \u043c\u0435\u043d\u044e',
         () => {
@@ -5695,7 +5736,7 @@ class GameScene extends Phaser.Scene {
         ? (profile.isPortrait ? Math.min(this.scale.width - 28, 356) : Math.min(this.scale.width - 48, 460))
         : 500,
       height: isMobileOverlay
-        ? (profile.isPortrait ? 312 : 280)
+        ? (profile.isPortrait ? 336 : 288)
         : 280,
       title: '\u0417\u0430\u0431\u0435\u0433 \u043e\u043a\u043e\u043d\u0447\u0435\u043d',
       titleColor: '#ffffff',
@@ -5739,7 +5780,7 @@ class GameScene extends Phaser.Scene {
     const restartBtn = this.createStyledUiButton(
       cx,
       bottom - (isMobileOverlay ? 84 : 82),
-      isMobileOverlay ? 188 : 210,
+      isMobileOverlay ? (profile.isPortrait ? panel.panelWidth - 38 : 188) : 210,
       40,
       '\u041d\u043e\u0432\u044b\u0439 \u0437\u0430\u0431\u0435\u0433',
       () => {
@@ -5754,7 +5795,7 @@ class GameScene extends Phaser.Scene {
     const menuBtn = this.createStyledUiButton(
       cx,
       bottom - 38,
-      isMobileOverlay ? 164 : 180,
+      isMobileOverlay ? (profile.isPortrait ? panel.panelWidth - 38 : 164) : 180,
       isMobileOverlay ? 36 : 40,
       '\u0412 \u043c\u0435\u043d\u044e',
       () => {

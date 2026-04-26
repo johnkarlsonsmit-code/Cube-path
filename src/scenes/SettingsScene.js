@@ -157,45 +157,58 @@ class SettingsScene extends Phaser.Scene {
 
     const safe = profile.safePadding + 6;
     const panelW = Math.min(w - safe * 2, profile.isPortrait ? 420 : 720);
-    const panelH = Math.min(h - safe * 2, profile.isPortrait ? 560 : 344);
+    const panelH = Math.min(h - safe * 2, profile.isPortrait ? 568 : 352);
     const panelX = w / 2;
     const panelY = h / 2;
     const panelTop = panelY - panelH / 2;
-    const rowWidth = panelW - (profile.isPortrait ? 52 : 68);
-    const sliderReservedRight = profile.isPortrait ? 62 : 76;
-    const sliderWidth = Math.max(150, rowWidth - sliderReservedRight);
-    const toggleGap = profile.isPortrait ? 74 : 86;
-    const contentTop = panelTop + (profile.isPortrait ? 150 : 122);
-    const contentBottom = panelTop + panelH - (profile.isPortrait ? 34 : 28);
+    const panelBottom = panelY + panelH / 2;
+    const backButtonPlacement = profile.isPortrait ? 'footer' : 'header';
+    const backButtonH = Math.max(38, Math.min(46, Math.round(profile.touchTarget * 0.74)));
+    const rowWidth = panelW - (profile.isPortrait ? 42 : 68);
+    const sliderReservedRight = profile.isPortrait ? 52 : 76;
+    const sliderWidth = Math.max(profile.isPortrait ? 132 : 150, rowWidth - sliderReservedRight);
+    const toggleGap = profile.isPortrait ? 58 : 86;
+    const contentTop = panelTop + (profile.isPortrait ? 138 : 122);
+    const contentBottom = panelBottom - (backButtonPlacement === 'footer' ? backButtonH + 34 : 28);
     const stack = window.CubePathLayout?.resolveVerticalStack?.({
       availableHeight: Math.max(220, contentBottom - contentTop),
       itemCount: 5,
-      preferredItemHeight: profile.isPortrait ? 58 : 50,
-      minItemHeight: profile.isPortrait ? 46 : 40,
-      preferredGap: profile.isPortrait ? 18 : 12,
+      preferredItemHeight: profile.isPortrait ? 54 : 50,
+      minItemHeight: profile.isPortrait ? 42 : 40,
+      preferredGap: profile.isPortrait ? 14 : 12,
       minGap: 8
     }) || {
-      itemHeight: profile.isPortrait ? 52 : 46,
-      gap: profile.isPortrait ? 14 : 10
+      itemHeight: profile.isPortrait ? 48 : 46,
+      gap: profile.isPortrait ? 12 : 10
     };
     const rowStep = stack.itemHeight + stack.gap;
-    const toggleStart = contentTop + stack.itemHeight * 0.45;
-    const sliderStart = toggleStart + rowStep * 2 + (profile.isPortrait ? 8 : 4);
+    const totalContentHeight = stack.itemHeight * 5 + stack.gap * 4;
+    const centeredTop = contentTop + Math.max(0, (contentBottom - contentTop - totalContentHeight) / 2);
+    const toggleStart = centeredTop + stack.itemHeight * 0.5;
+    const sliderStart = toggleStart + rowStep * 2;
 
     return {
       panelX,
       panelY,
       panelTop,
+      panelBottom,
       panelW,
       panelH,
-      titleY: panelTop + (profile.isPortrait ? 48 : 40),
+      titleY: panelTop + (profile.isPortrait ? 42 : 40),
       titleSize: profile.isPortrait ? 30 : 26,
-      subtitleY: panelTop + (profile.isPortrait ? 82 : 68),
+      subtitleY: panelTop + (profile.isPortrait ? 76 : 68),
       subtitleSize: profile.isPortrait ? 16 : 15,
-      backButtonX: panelX - panelW / 2 + (profile.isPortrait ? 70 : 66),
-      backButtonY: panelTop + (profile.isPortrait ? 114 : 98),
-      backButtonW: profile.isPortrait ? 120 : 124,
-      backButtonH: Math.max(38, Math.min(46, Math.round(profile.touchTarget * 0.74))),
+      backButtonPlacement,
+      backButtonX: backButtonPlacement === 'footer'
+        ? panelX
+        : panelX - panelW / 2 + 66,
+      backButtonY: backButtonPlacement === 'footer'
+        ? panelBottom - (backButtonH / 2 + 18)
+        : panelTop + 98,
+      backButtonW: backButtonPlacement === 'footer'
+        ? Math.min(panelW - 52, 210)
+        : 124,
+      backButtonH,
       rowWidth,
       toggleButtonW: profile.isPortrait ? 98 : 94,
       toggleButtonH: Math.max(34, Math.min(42, Math.round(profile.touchTarget * 0.66))),
@@ -206,6 +219,7 @@ class SettingsScene extends Phaser.Scene {
       valueSize: profile.isPortrait ? 15 : 14,
       sliderLabelSize: profile.isPortrait ? 16 : 15,
       sliderValueSize: profile.isPortrait ? 14 : 13,
+      sliderValueInset: profile.isPortrait ? 16 : 22,
       toggleGap
     };
   }
@@ -349,6 +363,7 @@ class SettingsScene extends Phaser.Scene {
     const left = x - rowWidth / 2;
     const buttonX = x + rowWidth / 2 - layout.toggleButtonW / 2;
     const valueX = buttonX - layout.toggleGap;
+    const labelWidth = Math.max(96, rowWidth - layout.toggleButtonW - layout.toggleGap - 22);
 
     const labelText = this.add.text(
       left,
@@ -364,7 +379,7 @@ class SettingsScene extends Phaser.Scene {
         align: 'left'
       })
     ).setOrigin(0, 0.5);
-    this.fitTextToBox(labelText, rowWidth - layout.toggleButtonW - layout.toggleGap - 26, 24, 11);
+    this.fitTextToBox(labelText, labelWidth, 24, 11);
 
     const valueText = this.add.text(
       valueX,
@@ -444,12 +459,15 @@ class SettingsScene extends Phaser.Scene {
     const layout = this.uiLayout;
     const rowWidth = layout.rowWidth;
     const left = x - rowWidth / 2;
-    const valueX = x + rowWidth / 2 - 22;
-    const sliderX = valueX - 30 - layout.sliderWidth / 2;
+    const valueX = x + rowWidth / 2 - (layout.sliderValueInset || 22);
+    const sliderX = valueX - (this.profile?.isPortrait ? 24 : 30) - layout.sliderWidth / 2;
+    const labelY = y - (this.profile?.isPortrait ? 16 : 18);
+    const sliderY = y + (this.profile?.isPortrait ? 8 : 10);
+    const labelWidth = Math.max(110, rowWidth - (this.profile?.isPortrait ? 26 : 42));
 
     const labelText = this.add.text(
       left,
-      y - 18,
+      labelY,
       label,
       this.makeTextStyle({
         size: layout.sliderLabelSize,
@@ -461,11 +479,11 @@ class SettingsScene extends Phaser.Scene {
         align: 'left'
       })
     ).setOrigin(0, 0.5);
-    this.fitTextToBox(labelText, rowWidth - 42, 26, 11);
+    this.fitTextToBox(labelText, labelWidth, 26, 11);
 
     const valueText = this.add.text(
       valueX,
-      y + 10,
+      sliderY,
       `${Math.round(initialValue * 100)}%`,
       this.makeTextStyle({
         size: layout.sliderValueSize,
@@ -479,7 +497,7 @@ class SettingsScene extends Phaser.Scene {
 
     const sliderBg = this.createRoundedRect(
       sliderX,
-      y + 10,
+      sliderY,
       layout.sliderWidth + 20,
       16,
       8,
@@ -495,7 +513,7 @@ class SettingsScene extends Phaser.Scene {
     const slider = CubePathUI.createSlider(
       this,
       sliderX,
-      y + 10,
+      sliderY,
       layout.sliderWidth,
       initialValue,
       (value) => {
