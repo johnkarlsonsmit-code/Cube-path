@@ -2183,6 +2183,7 @@ class GameScene extends Phaser.Scene {
 
   setupCamera() {
     const cam = this.cameras.main;
+    cam.setViewport(0, 0, this.scale.width, this.scale.height);
     cam.setBounds(
       this.worldBounds.x,
       this.worldBounds.y,

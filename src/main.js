@@ -66,6 +66,20 @@ const bindBrowserInteractionGuards = () => {
 
 const getSceneResizeKey = (scene) => `${scene?.scale?.width ?? 0}x${scene?.scale?.height ?? 0}`;
 
+const refreshRenderer = (game, viewport) => {
+  if (!game) return;
+
+  try {
+    game.renderer?.resize?.(viewport.width, viewport.height);
+  } catch (_error) {
+  }
+
+  try {
+    game.canvas?.getBoundingClientRect?.();
+  } catch (_error) {
+  }
+};
+
 const notifyScenesAboutResize = (game) => {
   const scenes = game?.scene?.scenes || [];
 
@@ -105,7 +119,7 @@ const bindViewportListeners = (game, isMobileGame) => {
 
         if (widthChanged || heightChanged) {
           game.scale.resize(viewport.width, viewport.height);
-          return;
+          refreshRenderer(game, viewport);
         }
       }
 
@@ -114,28 +128,31 @@ const bindViewportListeners = (game, isMobileGame) => {
     });
   };
 
+  const queueViewportBurst = () => {
+    queueViewportSync();
+    [80, 180, 360, 700, 1200, 1900].forEach((delay) => {
+      window.setTimeout(queueViewportSync, delay);
+    });
+  };
+
   const viewportTarget = window.visualViewport || null;
 
   window.addEventListener('resize', queueViewportSync, { passive: true });
-  window.addEventListener('orientationchange', queueViewportSync, { passive: true });
-  window.addEventListener('pageshow', queueViewportSync, { passive: true });
-  window.addEventListener('load', queueViewportSync, { passive: true });
-  window.addEventListener('focus', queueViewportSync, { passive: true });
-  document.addEventListener('visibilitychange', queueViewportSync, { passive: true });
-  document.addEventListener('fullscreenchange', queueViewportSync);
+  window.addEventListener('orientationchange', queueViewportBurst, { passive: true });
+  window.addEventListener('pageshow', queueViewportBurst, { passive: true });
+  window.addEventListener('load', queueViewportBurst, { passive: true });
+  window.addEventListener('focus', queueViewportBurst, { passive: true });
+  document.addEventListener('visibilitychange', queueViewportBurst, { passive: true });
+  document.addEventListener('fullscreenchange', queueViewportBurst);
   viewportTarget?.addEventListener?.('resize', queueViewportSync, { passive: true });
 
   game?.scale?.on?.('resize', () => {
-    syncViewportCssVars();
+    const viewport = syncViewportCssVars();
+    refreshRenderer(game, viewport);
     notifyScenesAboutResize(game);
   });
 
-  window.setTimeout(queueViewportSync, 0);
-  window.setTimeout(queueViewportSync, 120);
-  window.setTimeout(queueViewportSync, 320);
-  window.setTimeout(queueViewportSync, 700);
-  window.setTimeout(queueViewportSync, 1200);
-  window.setTimeout(queueViewportSync, 2000);
+  queueViewportBurst();
 };
 
 const bindCanvasGuards = (game) => {
@@ -146,6 +163,18 @@ const bindCanvasGuards = (game) => {
   canvas.setAttribute('oncontextmenu', 'return false;');
   canvas.addEventListener('contextmenu', (event) => event.preventDefault(), { capture: true });
   canvas.addEventListener('dragstart', (event) => event.preventDefault(), { capture: true });
+
+  canvas.addEventListener('webglcontextlost', (event) => {
+    event.preventDefault();
+  }, { capture: true });
+
+  canvas.addEventListener('webglcontextrestored', () => {
+    const viewport = syncViewportCssVars();
+    refreshRenderer(game, viewport);
+    game?.scale?.resize?.(viewport.width, viewport.height);
+    notifyScenesAboutResize(game);
+    game?.scale?.refresh?.();
+  }, { capture: true });
 };
 
 const waitWithTimeout = (promise, timeoutMs, fallbackValue) => {
