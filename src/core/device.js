@@ -4,20 +4,29 @@ window.CubePathDevice = (() => {
   const getViewport = () => {
     const docEl = document.documentElement || {};
     const visualViewport = window.visualViewport;
+    const pickDimension = (...values) => {
+      for (const value of values) {
+        const rounded = Math.round(value || 0);
+        if (rounded > 0) return rounded;
+      }
+
+      return 0;
+    };
+
+    const width = pickDimension(
+      visualViewport?.width,
+      window.innerWidth,
+      docEl.clientWidth
+    );
+    const height = pickDimension(
+      visualViewport?.height,
+      window.innerHeight,
+      docEl.clientHeight
+    );
 
     return {
-      width: Math.max(
-        Math.round(visualViewport?.width || 0) || 0,
-        Math.round(window.innerWidth || 0) || 0,
-        Math.round(docEl.clientWidth || 0) || 0,
-        360
-      ),
-      height: Math.max(
-        Math.round(visualViewport?.height || 0) || 0,
-        Math.round(window.innerHeight || 0) || 0,
-        Math.round(docEl.clientHeight || 0) || 0,
-        640
-      )
+      width: Math.max(width, 320),
+      height: Math.max(height, 320)
     };
   };
 

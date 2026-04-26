@@ -5289,20 +5289,21 @@ class GameScene extends Phaser.Scene {
       const pairGap = profile.isPortrait ? 14 : 16;
       const pairWidth = Math.max(106, Math.floor((panel.panelWidth - 44 - pairGap) / 2));
       const pairOffset = pairWidth / 2 + pairGap / 2;
-      const firstRowY = bottom - (profile.isPortrait ? 112 : 98);
-      const menuRowY = bottom - (profile.isPortrait ? 70 : 58);
-      const adRowY = bottom - (profile.isPortrait ? 28 : 18);
+      const isTightLandscape = !profile.isPortrait && panel.panelHeight <= 340;
+      const firstRowY = bottom - (profile.isPortrait ? 112 : (isTightLandscape ? 78 : 98));
+      const menuRowY = bottom - (profile.isPortrait ? 70 : (isTightLandscape ? 32 : 58));
+      const adRowY = bottom - (profile.isPortrait ? 28 : (isTightLandscape ? 32 : 18));
       const rewardIconX = cx - Math.min(profile.isPortrait ? 76 : 54, panel.panelWidth * 0.22);
 
-      panel.titleText.setY(top + (profile.isPortrait ? 42 : 38));
+      panel.titleText.setY(top + (profile.isPortrait ? 42 : (isTightLandscape ? 30 : 38)));
 
-      const starNodes = this.createStarRow(cx, top + (profile.isPortrait ? 98 : 88), result.stars, {
-        scale: starScale,
+      const starNodes = this.createStarRow(cx, top + (profile.isPortrait ? 98 : (isTightLandscape ? 70 : 88)), result.stars, {
+        scale: isTightLandscape ? Math.min(starScale, 0.78) : starScale,
         spacing: starSpacing
       });
       const divider = this.add.rectangle(
         cx,
-        top + (profile.isPortrait ? 144 : 128),
+        top + (profile.isPortrait ? 144 : (isTightLandscape ? 108 : 128)),
         Math.min(280, this.scale.width - 56),
         2,
         0xffffff,
@@ -5311,7 +5312,7 @@ class GameScene extends Phaser.Scene {
 
       const timeNodes = this.createMetricRow(
         metricX,
-        top + (profile.isPortrait ? 174 : 158),
+        top + (profile.isPortrait ? 174 : (isTightLandscape ? 132 : 158)),
         '\u231B',
         `${result.timeSeconds.toFixed(1)}\u0441 / ${result.parTime.toFixed(1)}\u0441`,
         'blue',
@@ -5325,7 +5326,7 @@ class GameScene extends Phaser.Scene {
 
       const coinNodes = this.createMetricRow(
         metricX,
-        top + (profile.isPortrait ? 206 : 192),
+        top + (profile.isPortrait ? 206 : (isTightLandscape ? 156 : 192)),
         'STAR_HALF',
         `${this.coinsCollected}/${this.coinsTotal}`,
         'gold',
@@ -5337,7 +5338,7 @@ class GameScene extends Phaser.Scene {
         }
       );
 
-      const rewardY = top + (profile.isPortrait ? 238 : 220);
+      const rewardY = top + (profile.isPortrait ? 238 : (isTightLandscape ? 178 : 220));
       const rewardCube = this.createRewardCubeIcon(
         rewardIconX,
         rewardY,
@@ -5362,7 +5363,7 @@ class GameScene extends Phaser.Scene {
         cx - pairOffset,
         firstRowY,
         pairWidth,
-        profile.isPortrait ? 38 : 40,
+        profile.isPortrait ? 38 : (isTightLandscape ? 34 : 40),
         '\u0420\u0435\u0441\u0442\u0430\u0440\u0442',
         () => {
           this.clearResultMenu();
@@ -5375,7 +5376,7 @@ class GameScene extends Phaser.Scene {
         cx + pairOffset,
         firstRowY,
         pairWidth,
-        profile.isPortrait ? 38 : 40,
+        profile.isPortrait ? 38 : (isTightLandscape ? 34 : 40),
         '\u0414\u0430\u043b\u0435\u0435',
         () => {
           this.clearResultMenu();
@@ -5385,10 +5386,10 @@ class GameScene extends Phaser.Scene {
       );
 
       const menuBtn = this.createStyledUiButton(
-        cx,
+        isTightLandscape ? cx - pairOffset : cx,
         menuRowY,
-        Math.min(panel.panelWidth - 36, profile.isPortrait ? 188 : 206),
-        profile.isPortrait ? 34 : 36,
+        isTightLandscape ? pairWidth : Math.min(panel.panelWidth - 36, profile.isPortrait ? 188 : 206),
+        profile.isPortrait ? 34 : (isTightLandscape ? 34 : 36),
         '\u0412 \u043c\u0435\u043d\u044e',
         () => {
           this.clearResultMenu();
@@ -5399,15 +5400,15 @@ class GameScene extends Phaser.Scene {
       );
 
       const adBtn = this.createStyledUiButton(
-        cx,
+        isTightLandscape ? cx + pairOffset : cx,
         adRowY,
-        Math.min(panel.panelWidth - 32, profile.isPortrait ? 286 : 296),
-        profile.isPortrait ? 40 : 38,
+        isTightLandscape ? pairWidth : Math.min(panel.panelWidth - 32, profile.isPortrait ? 286 : 296),
+        profile.isPortrait ? 40 : (isTightLandscape ? 34 : 38),
         watchBoostLabel,
         () => {
           this.showRewardedRandomBoost();
         },
-        { textSize: profile.isPortrait ? 10 : 11, theme: 'orange' }
+        { textSize: profile.isPortrait ? 10 : (isTightLandscape ? 9 : 11), theme: 'orange' }
       );
 
       this.resultUi = [
@@ -5664,10 +5665,15 @@ class GameScene extends Phaser.Scene {
     } else {
       const firstRowY = bottom - (isMobileOverlay ? 84 : 88);
       const menuRowY = bottom - (isMobileOverlay ? 38 : 40);
+      const landscapePairGap = 14;
+      const landscapePairWidth = isMobileOverlay
+        ? Math.max(132, Math.floor((panel.panelWidth - 44 - landscapePairGap) / 2))
+        : 140;
+      const landscapePairOffset = landscapePairWidth / 2 + landscapePairGap / 2;
       restartBtn = this.createStyledUiButton(
-        cx - (isMobileOverlay ? 84 : 120),
+        cx - (isMobileOverlay ? landscapePairOffset : 120),
         firstRowY,
-        isMobileOverlay ? 128 : 140,
+        isMobileOverlay ? landscapePairWidth : 140,
         isMobileOverlay ? 38 : 42,
         '\u0420\u0435\u0441\u0442\u0430\u0440\u0442',
         () => {
@@ -5678,9 +5684,9 @@ class GameScene extends Phaser.Scene {
       );
 
       secondChanceBtn = this.createStyledUiButton(
-        cx + (isMobileOverlay ? 40 : 120),
+        cx + (isMobileOverlay ? landscapePairOffset : 120),
         firstRowY,
-        isMobileOverlay ? Math.min(panel.panelWidth - 194, 188) : 210,
+        isMobileOverlay ? landscapePairWidth : 210,
         isMobileOverlay ? 44 : 46,
         '\u0421\u043c\u043e\u0442\u0440\u0435\u0442\u044c \u0440\u0435\u043a\u043b\u0430\u043c\u0443 \u0437\u0430\n\u0432\u0442\u043e\u0440\u043e\u0439 \u0448\u0430\u043d\u0441',
         () => {

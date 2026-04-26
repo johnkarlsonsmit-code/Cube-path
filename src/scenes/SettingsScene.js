@@ -162,21 +162,22 @@ class SettingsScene extends Phaser.Scene {
     const panelY = h / 2;
     const panelTop = panelY - panelH / 2;
     const panelBottom = panelY + panelH / 2;
+    const isTightLandscape = !profile.isPortrait && panelH <= 320;
     const backButtonPlacement = profile.isPortrait ? 'footer' : 'header';
-    const backButtonH = Math.max(38, Math.min(46, Math.round(profile.touchTarget * 0.74)));
+    const backButtonH = Math.max(isTightLandscape ? 32 : 38, Math.min(isTightLandscape ? 38 : 46, Math.round(profile.touchTarget * 0.74)));
     const rowWidth = panelW - (profile.isPortrait ? 42 : 68);
     const sliderReservedRight = profile.isPortrait ? 52 : 76;
     const sliderWidth = Math.max(profile.isPortrait ? 132 : 150, rowWidth - sliderReservedRight);
-    const toggleGap = profile.isPortrait ? 58 : 86;
-    const contentTop = panelTop + (profile.isPortrait ? 138 : 122);
-    const contentBottom = panelBottom - (backButtonPlacement === 'footer' ? backButtonH + 34 : 28);
+    const toggleGap = profile.isPortrait ? 58 : (isTightLandscape ? 70 : 86);
+    const contentTop = panelTop + (profile.isPortrait ? 138 : (isTightLandscape ? 86 : 122));
+    const contentBottom = panelBottom - (backButtonPlacement === 'footer' ? backButtonH + 34 : (isTightLandscape ? 16 : 28));
     const stack = window.CubePathLayout?.resolveVerticalStack?.({
-      availableHeight: Math.max(220, contentBottom - contentTop),
+      availableHeight: Math.max(150, contentBottom - contentTop),
       itemCount: 5,
-      preferredItemHeight: profile.isPortrait ? 54 : 50,
-      minItemHeight: profile.isPortrait ? 42 : 40,
-      preferredGap: profile.isPortrait ? 14 : 12,
-      minGap: 8
+      preferredItemHeight: profile.isPortrait ? 54 : (isTightLandscape ? 34 : 50),
+      minItemHeight: profile.isPortrait ? 42 : (isTightLandscape ? 28 : 40),
+      preferredGap: profile.isPortrait ? 14 : (isTightLandscape ? 5 : 12),
+      minGap: isTightLandscape ? 3 : 8
     }) || {
       itemHeight: profile.isPortrait ? 48 : 46,
       gap: profile.isPortrait ? 12 : 10
@@ -192,33 +193,34 @@ class SettingsScene extends Phaser.Scene {
       panelY,
       panelTop,
       panelBottom,
+      isTightLandscape,
       panelW,
       panelH,
-      titleY: panelTop + (profile.isPortrait ? 42 : 40),
-      titleSize: profile.isPortrait ? 30 : 26,
-      subtitleY: panelTop + (profile.isPortrait ? 76 : 68),
-      subtitleSize: profile.isPortrait ? 16 : 15,
+      titleY: panelTop + (profile.isPortrait ? 42 : (isTightLandscape ? 30 : 40)),
+      titleSize: profile.isPortrait ? 30 : (isTightLandscape ? 22 : 26),
+      subtitleY: panelTop + (profile.isPortrait ? 76 : (isTightLandscape ? 54 : 68)),
+      subtitleSize: profile.isPortrait ? 16 : (isTightLandscape ? 12 : 15),
       backButtonPlacement,
       backButtonX: backButtonPlacement === 'footer'
         ? panelX
-        : panelX - panelW / 2 + 66,
+        : panelX - panelW / 2 + (isTightLandscape ? 56 : 66),
       backButtonY: backButtonPlacement === 'footer'
         ? panelBottom - (backButtonH / 2 + 18)
-        : panelTop + 98,
+        : panelTop + (isTightLandscape ? 54 : 98),
       backButtonW: backButtonPlacement === 'footer'
         ? Math.min(panelW - 52, 210)
-        : 124,
+        : (isTightLandscape ? 104 : 124),
       backButtonH,
       rowWidth,
-      toggleButtonW: profile.isPortrait ? 98 : 94,
-      toggleButtonH: Math.max(34, Math.min(42, Math.round(profile.touchTarget * 0.66))),
+      toggleButtonW: profile.isPortrait ? 98 : (isTightLandscape ? 82 : 94),
+      toggleButtonH: Math.max(isTightLandscape ? 28 : 34, Math.min(isTightLandscape ? 34 : 42, Math.round(profile.touchTarget * 0.66))),
       sliderWidth,
       toggleRowY: [toggleStart, toggleStart + rowStep],
       sliderRowY: [sliderStart, sliderStart + rowStep, sliderStart + rowStep * 2],
-      labelSize: profile.isPortrait ? 18 : 17,
-      valueSize: profile.isPortrait ? 15 : 14,
-      sliderLabelSize: profile.isPortrait ? 16 : 15,
-      sliderValueSize: profile.isPortrait ? 14 : 13,
+      labelSize: profile.isPortrait ? 18 : (isTightLandscape ? 13 : 17),
+      valueSize: profile.isPortrait ? 15 : (isTightLandscape ? 11 : 14),
+      sliderLabelSize: profile.isPortrait ? 16 : (isTightLandscape ? 12 : 15),
+      sliderValueSize: profile.isPortrait ? 14 : (isTightLandscape ? 11 : 13),
       sliderValueInset: profile.isPortrait ? 16 : 22,
       toggleGap
     };
@@ -364,6 +366,7 @@ class SettingsScene extends Phaser.Scene {
     const buttonX = x + rowWidth / 2 - layout.toggleButtonW / 2;
     const valueX = buttonX - layout.toggleGap;
     const labelWidth = Math.max(96, rowWidth - layout.toggleButtonW - layout.toggleGap - 22);
+    const compactRow = !!layout.isTightLandscape;
 
     const labelText = this.add.text(
       left,
@@ -379,7 +382,7 @@ class SettingsScene extends Phaser.Scene {
         align: 'left'
       })
     ).setOrigin(0, 0.5);
-    this.fitTextToBox(labelText, labelWidth, 24, 11);
+    this.fitTextToBox(labelText, labelWidth, compactRow ? 18 : 24, compactRow ? 9 : 11);
 
     const valueText = this.add.text(
       valueX,
@@ -460,9 +463,10 @@ class SettingsScene extends Phaser.Scene {
     const rowWidth = layout.rowWidth;
     const left = x - rowWidth / 2;
     const valueX = x + rowWidth / 2 - (layout.sliderValueInset || 22);
-    const sliderX = valueX - (this.profile?.isPortrait ? 24 : 30) - layout.sliderWidth / 2;
-    const labelY = y - (this.profile?.isPortrait ? 16 : 18);
-    const sliderY = y + (this.profile?.isPortrait ? 8 : 10);
+    const compactRow = !!layout.isTightLandscape;
+    const sliderX = valueX - (this.profile?.isPortrait ? 24 : (compactRow ? 22 : 30)) - layout.sliderWidth / 2;
+    const labelY = y - (this.profile?.isPortrait ? 16 : (compactRow ? 10 : 18));
+    const sliderY = y + (this.profile?.isPortrait ? 8 : (compactRow ? 7 : 10));
     const labelWidth = Math.max(110, rowWidth - (this.profile?.isPortrait ? 26 : 42));
 
     const labelText = this.add.text(
@@ -479,7 +483,7 @@ class SettingsScene extends Phaser.Scene {
         align: 'left'
       })
     ).setOrigin(0, 0.5);
-    this.fitTextToBox(labelText, labelWidth, 26, 11);
+    this.fitTextToBox(labelText, labelWidth, compactRow ? 18 : 26, compactRow ? 9 : 11);
 
     const valueText = this.add.text(
       valueX,

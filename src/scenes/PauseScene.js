@@ -115,16 +115,17 @@ class PauseScene extends Phaser.Scene {
     const panelX = w / 2;
     const panelY = h / 2;
     const panelTop = panelY - panelH / 2;
-    const headerBottom = panelTop + (profile.isPortrait ? 106 : 94);
-    const footerPadding = profile.isPortrait ? 24 : 20;
+    const isTightLandscape = !profile.isPortrait && panelH <= 300;
+    const headerBottom = panelTop + (profile.isPortrait ? 106 : (isTightLandscape ? 76 : 94));
+    const footerPadding = profile.isPortrait ? 24 : (isTightLandscape ? 14 : 20);
     const contentBottom = panelTop + panelH - footerPadding;
     const stack = window.CubePathLayout?.resolveVerticalStack?.({
-      availableHeight: Math.max(156, contentBottom - headerBottom),
+      availableHeight: Math.max(120, contentBottom - headerBottom),
       itemCount: 4,
-      preferredItemHeight: profile.isPortrait ? 50 : 44,
-      minItemHeight: 34,
-      preferredGap: profile.isPortrait ? 14 : 10,
-      minGap: 8
+      preferredItemHeight: profile.isPortrait ? 50 : (isTightLandscape ? 38 : 44),
+      minItemHeight: isTightLandscape ? 30 : 34,
+      preferredGap: profile.isPortrait ? 14 : (isTightLandscape ? 7 : 10),
+      minGap: isTightLandscape ? 4 : 8
     }) || {
       itemHeight: profile.isPortrait ? 44 : 40,
       gap: 10
@@ -140,11 +141,11 @@ class PauseScene extends Phaser.Scene {
       panelTop,
       panelW,
       panelH,
-      titleY: panelTop + (profile.isPortrait ? 46 : 42),
-      titleSize: profile.isPortrait ? 28 : 22,
+      titleY: panelTop + (profile.isPortrait ? 46 : (isTightLandscape ? 34 : 42)),
+      titleSize: profile.isPortrait ? 28 : (isTightLandscape ? 20 : 22),
       buttonW: Math.min(panelW - 42, profile.isPortrait ? panelW - 52 : 224),
       buttonH,
-      buttonTextSize: profile.isPortrait ? 15 : 13,
+      buttonTextSize: profile.isPortrait ? 15 : (isTightLandscape ? 12 : 13),
       buttonY: [
         firstButtonY,
         firstButtonY + buttonH + gapY,

@@ -156,37 +156,40 @@ class LevelSelectScene extends Phaser.Scene {
     }
 
     const safe = profile.safePadding + 6;
+    const isCompactLandscape = !profile.isPortrait && height <= 430;
     const panelW = width - safe * 2;
-    const panelH = height - 98;
+    const panelH = height - (profile.isPortrait ? 98 : (isCompactLandscape ? 72 : 88));
+    const panelTop = profile.isPortrait ? 78 : (isCompactLandscape ? 70 : 76);
+    const panelY = panelTop + panelH / 2;
 
     return {
       panelW,
       panelH,
-      panelY: height / 2 + 8,
-      panelTop: 78,
-      titleY: profile.isPortrait ? 40 : 30,
-      titleSize: profile.isPortrait ? 30 : 24,
-      menuButtonX: safe + (profile.isPortrait ? 64 : 58),
-      menuButtonY: profile.isPortrait ? 86 : 66,
-      menuButtonW: profile.isPortrait ? 128 : 116,
-      menuButtonH: Math.max(42, Math.min(48, Math.round(profile.touchTarget * 0.78))),
-      contentStartY: profile.isPortrait ? 132 : 112,
+      panelY,
+      panelTop,
+      titleY: profile.isPortrait ? 40 : (isCompactLandscape ? 26 : 30),
+      titleSize: profile.isPortrait ? 30 : (isCompactLandscape ? 20 : 24),
+      menuButtonX: safe + (profile.isPortrait ? 64 : (isCompactLandscape ? 52 : 58)),
+      menuButtonY: profile.isPortrait ? 86 : (isCompactLandscape ? 48 : 66),
+      menuButtonW: profile.isPortrait ? 128 : (isCompactLandscape ? 104 : 116),
+      menuButtonH: Math.max(isCompactLandscape ? 34 : 42, Math.min(isCompactLandscape ? 38 : 48, Math.round(profile.touchTarget * 0.78))),
+      contentStartY: profile.isPortrait ? 132 : (isCompactLandscape ? 98 : 112),
       contentWidth: panelW - 36,
       footerY: height - 22,
       footerText: '',
       footerSize: profile.isPortrait ? 13 : 12,
-      contentBottomPadding: profile.isPortrait ? 126 : 104,
-      sectionTitleSize: profile.isPortrait ? 22 : 18,
-      sectionSubtitleSize: profile.isPortrait ? 13 : 11,
-      sectionCardHWithSubtitle: profile.isPortrait ? 82 : 72,
-      sectionCardHPlain: profile.isPortrait ? 58 : 54,
-      levelsPerRow: profile.isPortrait ? 3 : 4,
-      levelGapX: profile.isPortrait ? 12 : 14,
-      levelGapY: profile.isPortrait ? 12 : 10,
-      levelButtonH: profile.isPortrait ? 62 : 54,
-      levelTitleSize: profile.isPortrait ? 20 : 16,
-      starSize: profile.isPortrait ? 12 : 10,
-      levelVerticalPadding: 8
+      contentBottomPadding: profile.isPortrait ? 126 : (isCompactLandscape ? 40 : 88),
+      sectionTitleSize: profile.isPortrait ? 22 : (isCompactLandscape ? 15 : 18),
+      sectionSubtitleSize: profile.isPortrait ? 13 : (isCompactLandscape ? 10 : 11),
+      sectionCardHWithSubtitle: profile.isPortrait ? 82 : (isCompactLandscape ? 58 : 72),
+      sectionCardHPlain: profile.isPortrait ? 58 : (isCompactLandscape ? 44 : 54),
+      levelsPerRow: profile.isPortrait ? 3 : (isCompactLandscape ? 5 : 4),
+      levelGapX: profile.isPortrait ? 12 : (isCompactLandscape ? 10 : 14),
+      levelGapY: profile.isPortrait ? 12 : (isCompactLandscape ? 8 : 10),
+      levelButtonH: profile.isPortrait ? 62 : (isCompactLandscape ? 44 : 54),
+      levelTitleSize: profile.isPortrait ? 20 : (isCompactLandscape ? 13 : 16),
+      starSize: profile.isPortrait ? 12 : (isCompactLandscape ? 9 : 10),
+      levelVerticalPadding: isCompactLandscape ? 6 : 8
     };
   }
 

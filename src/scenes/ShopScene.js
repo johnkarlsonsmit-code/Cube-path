@@ -148,24 +148,25 @@ class ShopScene extends Phaser.Scene {
 
         const safe = profile.safePadding + 6;
         const isCompactPortrait = !!(profile.isPortrait && height <= 740);
+        const isCompactLandscape = !!(!profile.isPortrait && height <= 430);
         const buttonGap = profile.isPortrait ? 10 : 8;
-        const headerTitleY = safe + (profile.isPortrait ? (isCompactPortrait ? 16 : 18) : 16);
-        const currencyY = headerTitleY + (profile.isPortrait ? (isCompactPortrait ? 28 : 32) : 24);
+        const headerTitleY = safe + (profile.isPortrait ? (isCompactPortrait ? 16 : 18) : (isCompactLandscape ? 12 : 16));
+        const currencyY = headerTitleY + (profile.isPortrait ? (isCompactPortrait ? 28 : 32) : (isCompactLandscape ? 22 : 24));
         const topButtonH = profile.isPortrait
             ? Math.max(40, Math.min(isCompactPortrait ? 46 : 50, Math.round(profile.touchTarget * 0.68)))
-            : Math.max(40, Math.min(46, Math.round(profile.touchTarget * 0.74)));
+            : Math.max(34, Math.min(isCompactLandscape ? 38 : 46, Math.round(profile.touchTarget * 0.66)));
         const availableTopWidth = Math.max(180, width - safe * 2);
         const menuButtonW = profile.isPortrait
             ? Math.max(98, Math.min(124, Math.floor((availableTopWidth - buttonGap) * 0.34)))
             : Math.max(96, Math.min(116, Math.floor((availableTopWidth - buttonGap) * 0.4)));
         const adButtonW = Math.max(130, availableTopWidth - menuButtonW - buttonGap);
-        const topButtonsY = currencyY + (profile.isPortrait ? (isCompactPortrait ? 38 : 42) : 34);
-        const tabH = profile.isPortrait ? (isCompactPortrait ? 48 : 52) : 46;
-        const tabsY = topButtonsY + topButtonH / 2 + tabH / 2 + (profile.isPortrait ? (isCompactPortrait ? 14 : 18) : 18);
+        const topButtonsY = currencyY + (profile.isPortrait ? (isCompactPortrait ? 38 : 42) : (isCompactLandscape ? 24 : 34));
+        const tabH = profile.isPortrait ? (isCompactPortrait ? 48 : 52) : (isCompactLandscape ? 38 : 46);
+        const tabsY = topButtonsY + topButtonH / 2 + tabH / 2 + (profile.isPortrait ? (isCompactPortrait ? 14 : 18) : (isCompactLandscape ? 10 : 18));
         const tabW = Math.floor((width - safe * 2) / 3);
         const previewMode = profile.isPortrait ? 'bottom' : 'side';
         const scrollX = safe;
-        const scrollY = tabsY + tabH / 2 + (profile.isPortrait ? 16 : 18);
+        const scrollY = tabsY + tabH / 2 + (profile.isPortrait ? 16 : (isCompactLandscape ? 10 : 18));
         const previewW = previewMode === 'bottom'
             ? width - safe * 2
             : Math.min(220, Math.floor(width * 0.28));
@@ -174,14 +175,14 @@ class ShopScene extends Phaser.Scene {
             : width - safe * 2 - previewW - 18;
         const previewH = previewMode === 'bottom'
             ? (isCompactPortrait ? 82 : 92)
-            : 142;
+            : (isCompactLandscape ? 118 : 142);
         const previewY = previewMode === 'bottom'
             ? height - safe - previewH / 2
             : scrollY + previewH / 2 + 4;
         const scrollBottom = previewMode === 'bottom'
             ? previewY - previewH / 2 - 14
             : height - safe;
-        const scrollH = Math.max(132, scrollBottom - scrollY);
+        const scrollH = Math.max(isCompactLandscape ? 104 : 132, scrollBottom - scrollY);
         const scrollViewport = {
             x: scrollX,
             y: scrollY,
@@ -191,9 +192,9 @@ class ShopScene extends Phaser.Scene {
 
         return {
             headerTitleY,
-            headerTitleSize: profile.isPortrait ? 30 : 24,
+            headerTitleSize: profile.isPortrait ? 30 : (isCompactLandscape ? 20 : 24),
             currencyY,
-            currencySize: profile.isPortrait ? 16 : 15,
+            currencySize: profile.isPortrait ? 16 : (isCompactLandscape ? 12 : 15),
             menuButtonX: width - safe - menuButtonW / 2,
             menuButtonY: topButtonsY,
             menuButtonW,
@@ -220,7 +221,7 @@ class ShopScene extends Phaser.Scene {
                 ? (isCompactPortrait
                     ? { w: 24, h: 16, depth: 12 }
                     : { w: 28, h: 18, depth: 14 })
-                : { w: 36, h: 24, depth: 18 },
+                : (isCompactLandscape ? { w: 30, h: 20, depth: 15 } : { w: 36, h: 24, depth: 18 }),
             previewSkinX: previewMode === 'bottom' ? width / 2 - previewW / 2 + 88 : width - safe - previewW / 2,
             previewSkinY: previewMode === 'bottom' ? previewY - 10 : previewY + 48,
             previewHatX: previewMode === 'bottom' ? width / 2 - previewW / 2 + 88 : width - safe - previewW / 2,
@@ -229,17 +230,17 @@ class ShopScene extends Phaser.Scene {
             previewLabelOrigin: previewMode === 'bottom' ? 0 : 0.5,
             catalogColumns: profile.isPortrait ? 1 : 2,
             catalogCardW: profile.isPortrait ? Math.min(scrollW - 18, 292) : Math.min(Math.floor((scrollW - 18) / 2) - 8, 252),
-            catalogCardH: profile.isPortrait ? (isCompactPortrait ? 164 : 174) : 160,
+            catalogCardH: profile.isPortrait ? (isCompactPortrait ? 164 : 174) : (isCompactLandscape ? 138 : 160),
             catalogGapX: profile.isPortrait ? 0 : 18,
             catalogGapY: profile.isPortrait ? (isCompactPortrait ? 14 : 18) : 16,
             cosmeticStartY: 28,
             boostColumns: profile.isPortrait ? 1 : 2,
             boostCardW: profile.isPortrait ? scrollW - 18 : Math.min(Math.floor((scrollW - 16) / 2), 300),
-            boostCardH: profile.isPortrait ? (isCompactPortrait ? 198 : 210) : 192,
+            boostCardH: profile.isPortrait ? (isCompactPortrait ? 198 : 210) : (isCompactLandscape ? 168 : 192),
             boostGapX: 16,
             boostStartY: 18,
             boostButtonW: profile.isPortrait ? Math.min(scrollW - 56, 208) : 176,
-            boostButtonH: profile.isPortrait ? 44 : 42,
+            boostButtonH: profile.isPortrait ? 44 : (isCompactLandscape ? 36 : 42),
             hintY: 18,
             hintSize: profile.isPortrait ? 13 : 11,
             scrollBarOffset: 12,
