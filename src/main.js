@@ -80,19 +80,21 @@ const refreshRenderer = (game, viewport) => {
   }
 };
 
-const notifyScenesAboutResize = (game) => {
+const notifyScenesAboutResize = (game, force = false) => {
   const scenes = game?.scene?.scenes || [];
 
   scenes.forEach((scene) => {
     if (!scene?.sys?.settings) return;
 
     const nextKey = getSceneResizeKey(scene);
-    if (scene.__cubePathResizeKey === nextKey) return;
+    const forceScene = force && scene.sys.settings.key === 'GameScene';
+    if (!forceScene && scene.__cubePathResizeKey === nextKey) return;
 
     scene.__cubePathResizeKey = nextKey;
     scene.handleResize?.({
       width: scene.scale?.width ?? 0,
-      height: scene.scale?.height ?? 0
+      height: scene.scale?.height ?? 0,
+      force
     });
   });
 };
@@ -102,14 +104,19 @@ const bindViewportListeners = (game, isMobileGame) => {
   window.CubePathViewportListenersBound = true;
 
   let pendingFrame = 0;
+  let pendingForceSceneResize = false;
 
-  const queueViewportSync = () => {
+  const queueViewportSync = (forceSceneResize = false) => {
+    pendingForceSceneResize = pendingForceSceneResize || forceSceneResize;
+
     if (pendingFrame) {
       window.cancelAnimationFrame(pendingFrame);
     }
 
     pendingFrame = window.requestAnimationFrame(() => {
       pendingFrame = 0;
+      const shouldForceSceneResize = pendingForceSceneResize;
+      pendingForceSceneResize = false;
 
       const viewport = syncViewportCssVars();
 
@@ -123,15 +130,15 @@ const bindViewportListeners = (game, isMobileGame) => {
         }
       }
 
-      notifyScenesAboutResize(game);
+      notifyScenesAboutResize(game, shouldForceSceneResize);
       game?.scale?.refresh?.();
     });
   };
 
   const queueViewportBurst = () => {
-    queueViewportSync();
+    queueViewportSync(true);
     [80, 180, 360, 700, 1200, 1900].forEach((delay) => {
-      window.setTimeout(queueViewportSync, delay);
+      window.setTimeout(() => queueViewportSync(true), delay);
     });
   };
 
@@ -149,7 +156,7 @@ const bindViewportListeners = (game, isMobileGame) => {
   game?.scale?.on?.('resize', () => {
     const viewport = syncViewportCssVars();
     refreshRenderer(game, viewport);
-    notifyScenesAboutResize(game);
+    notifyScenesAboutResize(game, true);
   });
 
   queueViewportBurst();

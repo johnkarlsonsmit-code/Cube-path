@@ -325,11 +325,6 @@ class GameScene extends Phaser.Scene {
       child.destroy?.();
     });
 
-    if (this.hudCamera) {
-      this.cameras.remove(this.hudCamera, true);
-      this.hudCamera = null;
-    }
-
     if (this.hintTextAd) {
       this.hintTextAd.destroy();
       this.hintTextAd = null;
@@ -1072,11 +1067,7 @@ class GameScene extends Phaser.Scene {
     }
     this.clearPauseMenu();
     this.isPaused = false;
-    if (this.hudCamera) {
-      this.cameras.remove(this.hudCamera, true);
-      this.hudCamera = null;
-    }
-
+    this.resetCameraFilters();
     this.children.removeAll(true);
 
     const totalLevels = CubePathStorage.getTotalLevels(this.gameMode);
@@ -1173,11 +1164,7 @@ class GameScene extends Phaser.Scene {
     const profile = this.deviceProfile || window.CubePathDevice?.getProfile?.(this) || { isMobile: false, isPortrait: false };
     const isMobileOverlay = !!profile.isMobile;
 
-    if (this.hudCamera) {
-      this.cameras.remove(this.hudCamera, true);
-      this.hudCamera = null;
-    }
-
+    this.resetCameraFilters();
     this.children.removeAll(true);
 
     const panel = this.createStyledOverlayPanel({
@@ -2199,19 +2186,31 @@ class GameScene extends Phaser.Scene {
     }
   }
 
+  resetCameraFilters() {
+    this.children.list.forEach((child) => {
+      if (!child || typeof child.cameraFilter !== 'number') return;
+      child.cameraFilter = 0;
+    });
+  }
+
   fixHudToCamera() {
     const mainCam = this.cameras.main;
 
-    if (this.hudCamera) {
-      this.cameras.remove(this.hudCamera, true);
-      this.hudCamera = null;
+    this.resetCameraFilters();
+
+    let hudCam = this.hudCamera;
+    const hasHudCamera = hudCam && this.cameras.cameras.includes(hudCam);
+
+    if (!hasHudCamera) {
+      hudCam = this.cameras.add(0, 0, this.scale.width, this.scale.height, false, 'hudCamera');
+      this.hudCamera = hudCam;
+    } else {
+      hudCam.setViewport(0, 0, this.scale.width, this.scale.height);
     }
 
-    const hudCam = this.cameras.add(0, 0, this.scale.width, this.scale.height, false, 'hudCamera');
     hudCam.setScroll(0, 0);
     hudCam.setZoom(1);
     hudCam.roundPixels = true;
-    this.hudCamera = hudCam;
 
     const hudObjects = [];
     const worldObjects = [];
@@ -4211,11 +4210,7 @@ class GameScene extends Phaser.Scene {
     const profile = this.deviceProfile || window.CubePathDevice?.getProfile?.(this) || { isMobile: false, isPortrait: false };
     const isMobileOverlay = !!profile.isMobile;
 
-    if (this.hudCamera) {
-      this.cameras.remove(this.hudCamera, true);
-      this.hudCamera = null;
-    }
-
+    this.resetCameraFilters();
     this.children.removeAll(true);
 
     const totalLevels = CubePathStorage.getTotalLevels(this.gameMode);
@@ -4755,10 +4750,7 @@ class GameScene extends Phaser.Scene {
     this.clearSecondChanceMenu();
     this.activeOverlayKind = 'secondChance';
 
-    if (this.hudCamera) {
-      this.cameras.remove(this.hudCamera, true);
-      this.hudCamera = null;
-    }
+    this.resetCameraFilters();
 
     const profile = this.deviceProfile || window.CubePathDevice?.getProfile?.(this) || { isMobile: false, isPortrait: false };
     const isMobileOverlay = !!profile.isMobile;
@@ -5038,11 +5030,7 @@ class GameScene extends Phaser.Scene {
     const profile = this.deviceProfile || window.CubePathDevice?.getProfile?.(this) || { isMobile: false, isPortrait: false };
     const isMobileOverlay = !!profile.isMobile;
 
-    if (this.hudCamera) {
-      this.cameras.remove(this.hudCamera, true);
-      this.hudCamera = null;
-    }
-
+    this.resetCameraFilters();
     this.children.removeAll(true);
 
     const panel = this.createStyledOverlayPanel({
@@ -5128,11 +5116,7 @@ class GameScene extends Phaser.Scene {
     const profile = this.deviceProfile || window.CubePathDevice?.getProfile?.(this) || { isMobile: false, isPortrait: false };
     const isMobileOverlay = !!profile.isMobile;
 
-    if (this.hudCamera) {
-      this.cameras.remove(this.hudCamera, true);
-      this.hudCamera = null;
-    }
-
+    this.resetCameraFilters();
     this.children.removeAll(true);
 
     const totalLevels = CubePathStorage.getTotalLevels(this.gameMode);
@@ -5256,10 +5240,7 @@ class GameScene extends Phaser.Scene {
 
     this.lastLevelCompleteCubeCoins = gainedCubeCoins;
 
-    if (this.hudCamera) {
-      this.cameras.remove(this.hudCamera, true);
-      this.hudCamera = null;
-    }
+    this.resetCameraFilters();
 
     const panel = this.createStyledOverlayPanel({
       width: isMobileResult
@@ -5568,10 +5549,7 @@ class GameScene extends Phaser.Scene {
     this.clearSecondChanceMenu();
     this.activeOverlayKind = 'secondChance';
 
-    if (this.hudCamera) {
-      this.cameras.remove(this.hudCamera, true);
-      this.hudCamera = null;
-    }
+    this.resetCameraFilters();
 
     const profile = this.deviceProfile || window.CubePathDevice?.getProfile?.(this) || { isMobile: false, isPortrait: false };
     const isMobileOverlay = !!profile.isMobile;
@@ -5844,10 +5822,7 @@ class GameScene extends Phaser.Scene {
       this.clearSecondChanceMenu();
     }
 
-    if (this.hudCamera) {
-      this.cameras.remove(this.hudCamera, true);
-      this.hudCamera = null;
-    }
+    this.resetCameraFilters();
 
     this.freezeActive = false;
     this.pendingFrozenBreaks = [];

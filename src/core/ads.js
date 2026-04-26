@@ -10,7 +10,10 @@ window.CubePathAds = {
     sdkMissingWarned: false,
     countdownOverlayEl: null,
     interstitialCooldownMs: 70000,
+    minGameplayBeforeInterstitialMs: 50000,
     lastInterstitialAt: 0,
+    gameplayStartedAt: 0,
+    accumulatedGameplayMs: 0,
 
     setGameInstance(game) {
         this.gameInstance = game || null;
@@ -242,11 +245,19 @@ window.CubePathAds = {
         }
 
         this.gameplayActive = true;
+        this.gameplayStartedAt = Date.now();
         return true;
     },
 
     async gameplayStop() {
         if (!this.gameplayActive) return true;
+
+        if (this.gameplayStartedAt > 0) {
+            this.accumulatedGameplayMs += Math.max(0, Date.now() - this.gameplayStartedAt);
+        }
+
+        this.gameplayActive = false;
+        this.gameplayStartedAt = 0;
 
         const ysdk = await this.init();
 
@@ -258,11 +269,19 @@ window.CubePathAds = {
             }
         }
 
-        this.gameplayActive = false;
         return true;
     },
 
+    getTotalGameplayMs() {
+        if (!this.gameplayActive || this.gameplayStartedAt <= 0) {
+            return this.accumulatedGameplayMs;
+        }
+
+        return this.accumulatedGameplayMs + Math.max(0, Date.now() - this.gameplayStartedAt);
+    },
+
     canShowInterstitial() {
+        if (this.getTotalGameplayMs() < this.minGameplayBeforeInterstitialMs) return false;
         if (this.interstitialCooldownMs <= 0) return true;
         return (Date.now() - this.lastInterstitialAt) >= this.interstitialCooldownMs;
     },
@@ -352,7 +371,7 @@ window.CubePathAds = {
             onReward = null,
             onClose = null,
             onError = null,
-            countdown = true,
+            countdown = false,
             countdownLabel = 'Реклама начнется через'
         } = options;
 
